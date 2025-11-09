@@ -1,44 +1,70 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import logoUrl from "../assets/logo.png";
+
+type SwitchLink = {
+  helper: string;
+  label: string;
+  to: string;
+};
+
+interface AuthLayoutProps {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  switchLink: SwitchLink;
+}
 
 export default function AuthLayout({
   title,
   subtitle,
   children,
-  bottomLink,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-  bottomLink?: { text: string; to: string };
-}) {
+  switchLink,
+}: AuthLayoutProps) {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl shadow-slate-200/40 dark:shadow-black/30 rounded-2xl p-6 sm:p-8 border border-slate-400 dark:border-slate-800">
-          <div className="text-center space-y-1 mb-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-              {title}
-            </h1>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#F9FAFB] via-white to-[#E8FFF4]">
+      <div className="mx-auto w-full flex-1 px-4 py-8 sm:px-6 lg:max-w-7xl">
+        <div className="mb-8 flex items-center justify-between shadow shadow-green-100">
+          <Link to="/" className="flex items-center gap-3 rounded-2xl px-2 py-1">
+          <img src={logoUrl} alt="Rent & Swap" className="h-14 w-14" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-semibold text-emerald-950">
+              Rent & Swap
+            </span>
+            <span className="text-xs font-medium uppercase tracking-wide text-emerald-500">
+              Share more. Spend less.
+            </span>
+          </div>
+        </Link>
+          <Link
+            to={switchLink.to}
+            className="rounded-full border border-emerald-100/80 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+          >
+            {switchLink.label}
+          </Link>
+        </div>
+        <div className="mx-auto mt-[6rem] max-w-md rounded-3xl border border-gray-300 px-6 py-8 shadow-xl **shadow-gray-400/40** ring-1 ring-emerald-50 sm:px-8">
+          <div className="mb-8 space-y-1 text-center">
+            <h1 className="text-3xl font-semibold text-slate-900">{title}</h1>
             {subtitle && (
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                {subtitle}
-              </p>
+              <p className="text-sm text-slate-500 sm:text-base">{subtitle}</p>
             )}
           </div>
           {children}
-          {bottomLink && (
-            <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
-              {bottomLink.text.split("[")[0]}
-              <Link
-                to={bottomLink.to}
-                className="ml-1 font-medium text-slate-900 dark:text-white underline underline-offset-4"
-              >
-                {bottomLink.text.split("]")[0].split("[")[1] ?? ""}
-              </Link>
-            </p>
-          )}
+          <p className="mt-8 text-center text-sm text-slate-500">
+            {switchLink.helper}{" "}
+            <Link
+              to={switchLink.to}
+              className="font-semibold text-[var(--rs-primary)] hover:text-[var(--rs-primary-dark)]"
+            >
+              {switchLink.label}
+            </Link>
+          </p>
         </div>
       </div>
+      <footer className="py-6 text-center text-xs text-slate-500">
+        © {new Date().getFullYear()} Rent &amp; Swap
+      </footer>
     </div>
   );
 }

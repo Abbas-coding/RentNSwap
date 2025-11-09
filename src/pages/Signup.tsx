@@ -1,9 +1,14 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AuthLayout from "../layouts/AuthLayout";
-import { PasswordInput } from "../components/ui/PasswordInput";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { authApi, ApiError } from "@/lib/api";
 
 const SignupSchema = z
   .object({
@@ -21,80 +26,124 @@ const SignupSchema = z
 
 type SignupForm = z.infer<typeof SignupSchema>;
 
+const inputStyles =
+  "h-12 rounded-2xl border-emerald-100/80 bg-white text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-[var(--rs-primary)] focus:ring-[#38BDF8]/50";
+const passwordWrapperStyles =
+  "[&>input]:h-12 [&>input]:rounded-2xl [&>input]:border-emerald-100/80 [&>input]:bg-white [&>input]:text-base [&>input]:text-slate-900 [&>input]:placeholder:text-slate-400 [&>input]:shadow-sm [&>input]:focus:border-[var(--rs-primary)] [&>input]:focus:ring-[#38BDF8]/50 [&>button]:text-slate-400 [&>button]:hover:text-slate-700";
+
 export default function Signup() {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupForm>({ resolver: zodResolver(SignupSchema) });
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const onSubmit = async (data: SignupForm) => {
-    // TODO: replace with API call
-    await new Promise((r) => setTimeout(r, 600));
-    alert(JSON.stringify({ identifier: data.identifier }, null, 2));
+    setServerError(null);
+    try {
+      const response = await authApi.signup({
+        identifier: data.identifier,
+        password: data.password,
+      });
+      if (response.token) {
+        // Token will be used once auto-login or email verification is in place.
+      }
+      navigate("/login", { state: { accountCreated: true } });
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : "Unable to create your account.";
+      setServerError(message);
+    }
   };
 
   return (
     <AuthLayout
-      title="Rent & Swap"
-      subtitle="Signup to start your journey"
-      bottomLink={{ text: "Already have an account? [Login]", to: "/login" }}
+      title="Create your account"
+      subtitle="List what you own. Borrow what you need."
+      switchLink={{
+        helper: "Already part of the community?",
+        label: "Log in",
+        to: "/login",
+      }}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-2">
+          <Label
+            htmlFor="identifier"
+            className="text-sm font-semibold text-slate-600"
+          >
             Email or Phone
-          </label>
-          <input
+          </Label>
+          <Input
+            id="identifier"
             type="text"
             autoComplete="username"
             placeholder="you@example.com / 03xx-xxxxxxx"
-            className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/60"
+            className={inputStyles}
+            aria-invalid={!!errors.identifier}
             {...register("identifier")}
           />
           {errors.identifier && (
-            <p className="mt-1 text-xs text-red-600">
-              {errors.identifier.message}
-            </p>
+            <p className="text-sm text-red-500">{errors.identifier.message}</p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
+        <div className="space-y-2">
+          <Label
+            htmlFor="password"
+            className="text-sm font-semibold text-slate-600"
+          >
+            Password
+          </Label>
           <PasswordInput
+            id="password"
             autoComplete="new-password"
             placeholder="Create a strong password"
+            className={passwordWrapperStyles}
+            aria-invalid={!!errors.password}
             {...register("password")}
           />
           {errors.password && (
-            <p className="mt-1 text-xs text-red-600">
-              {errors.password.message}
-            </p>
+            <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">
+        <div className="space-y-2">
+          <Label
+            htmlFor="confirm"
+            className="text-sm font-semibold text-slate-600"
+          >
             Confirm Password
-          </label>
+          </Label>
           <PasswordInput
+            id="confirm"
             autoComplete="new-password"
             placeholder="Repeat password"
+            className={passwordWrapperStyles}
+            aria-invalid={!!errors.confirm}
             {...register("confirm")}
           />
           {errors.confirm && (
-            <p className="mt-1 text-xs text-red-600">
-              {errors.confirm.message}
-            </p>
+            <p className="text-sm text-red-500">{errors.confirm.message}</p>
           )}
         </div>
 
-        <button
+        {serverError && (
+          <p className="text-sm text-center text-red-500">{serverError}</p>
+        )}
+
+        <Button
+          type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-xl bg-slate-900 text-white py-2.5 text-sm font-medium shadow hover:bg-slate-800 disabled:opacity-50"
+          className="h-12 w-full rounded-2xl bg-[var(--rs-primary)] text-base font-semibold text-white shadow-lg shadow-emerald-200/60 transition hover:bg-[var(--rs-primary-dark)] focus-visible:ring-[#38BDF8]/60 disabled:opacity-60"
         >
-          {isSubmitting ? "Creating account…" : "Sign Up"}
-        </button>
+          {isSubmitting ? "Creating account…" : "Create account"}
+        </Button>
+        <p className="text-center text-xs text-slate-400">
+          By joining, you agree to respectful swaps and responsible returns.
+        </p>
       </form>
     </AuthLayout>
   );
