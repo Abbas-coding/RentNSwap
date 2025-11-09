@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { authApi, ApiError } from "@/lib/api";
 
 const SignupSchema = z
   .object({
@@ -34,11 +37,25 @@ export default function Signup() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupForm>({ resolver: zodResolver(SignupSchema) });
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const onSubmit = async (data: SignupForm) => {
-    // TODO: replace with API call
-    await new Promise((r) => setTimeout(r, 600));
-    alert(JSON.stringify({ identifier: data.identifier }, null, 2));
+    setServerError(null);
+    try {
+      const response = await authApi.signup({
+        identifier: data.identifier,
+        password: data.password,
+      });
+      if (response.token) {
+        // Token will be used once auto-login or email verification is in place.
+      }
+      navigate("/login", { state: { accountCreated: true } });
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : "Unable to create your account.";
+      setServerError(message);
+    }
   };
 
   return (
@@ -112,6 +129,10 @@ export default function Signup() {
             <p className="text-sm text-red-500">{errors.confirm.message}</p>
           )}
         </div>
+
+        {serverError && (
+          <p className="text-sm text-center text-red-500">{serverError}</p>
+        )}
 
         <Button
           type="submit"

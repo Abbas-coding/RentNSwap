@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { authApi, ApiError } from "@/lib/api";
+import { authStorage } from "@/lib/auth";
 
 const LoginSchema = z.object({
   identifier: z
@@ -29,11 +32,25 @@ export default function Login() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(LoginSchema) });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const showCreationNotice = useMemo(
+    () => Boolean(location.state && (location.state as { accountCreated?: boolean }).accountCreated),
+    [location.state]
+  );
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const onSubmit = async (data: LoginForm) => {
-    // TODO: replace with API call
-    await new Promise((r) => setTimeout(r, 600));
-    alert(JSON.stringify(data, null, 2));
+    setServerError(null);
+    try {
+      const response = await authApi.login(data);
+      authStorage.setToken(response.token);
+      navigate("/");
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : "Unable to sign in right now.";
+      setServerError(message);
+    }
   };
 
   return (
@@ -47,6 +64,11 @@ export default function Login() {
       }}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {showCreationNotice && (
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-700">
+            Account created! Sign in to continue.
+          </div>
+        )}
         <div className="space-y-2">
           <Label
             htmlFor="identifier"
@@ -95,6 +117,10 @@ export default function Login() {
             <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
+
+        {serverError && (
+          <p className="text-sm text-center text-red-500">{serverError}</p>
+        )}
 
         <Button
           type="submit"

@@ -1,7 +1,8 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X, Search, Leaf } from "lucide-react";
 import logoUrl from "../assets/logo.png";
+import { authStorage, useAuthStatus } from "@/lib/auth";
 
 const navLinks = [
   { to: "/rent", label: "Rent" },
@@ -12,6 +13,13 @@ const navLinks = [
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const isAuthed = useAuthStatus();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authStorage.clearToken();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-emerald-100/70 bg-white/80 backdrop-blur-2xl">
@@ -61,19 +69,39 @@ export default function SiteHeader() {
 
         {/* Actions */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            to="/list"
-            className="inline-flex h-11 items-center gap-2 rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
-          >
-            <Leaf size={16} />
-            List an item
-          </Link>
-          <Link
-            to="/login"
-            className="inline-flex h-11 items-center rounded-2xl bg-[var(--rs-primary)] px-5 text-sm font-semibold text-white shadow-lg shadow-emerald-200/70 transition hover:bg-[var(--rs-primary-dark)]"
-          >
-            Sign in
-          </Link>
+          {isAuthed ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="inline-flex h-11 items-center gap-2 rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+              >
+                <Leaf size={16} />
+                Dashboard
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="inline-flex h-11 items-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-lg transition hover:bg-slate-800"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/list"
+                className="inline-flex h-11 items-center gap-2 rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+              >
+                <Leaf size={16} />
+                List an item
+              </Link>
+              <Link
+                to="/login"
+                className="inline-flex h-11 items-center rounded-2xl bg-[var(--rs-primary)] px-5 text-sm font-semibold text-white shadow-lg shadow-emerald-200/70 transition hover:bg-[var(--rs-primary-dark)]"
+              >
+                Sign in
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -111,20 +139,43 @@ export default function SiteHeader() {
             ))}
           </nav>
           <div className="mt-4 grid gap-3">
-            <Link
-              to="/list"
-              className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"
-              onClick={() => setOpen(false)}
-            >
-              List an item
-            </Link>
-            <Link
-              to="/login"
-              className="rounded-2xl bg-[var(--rs-primary)] px-4 py-3 text-center text-sm font-semibold text-white"
-              onClick={() => setOpen(false)}
-            >
-              Sign in
-            </Link>
+            {isAuthed ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"
+                  onClick={() => setOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <button
+                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+                  onClick={() => {
+                    handleLogout();
+                    setOpen(false);
+                  }}
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/list"
+                  className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"
+                  onClick={() => setOpen(false)}
+                >
+                  List an item
+                </Link>
+                <Link
+                  to="/login"
+                  className="rounded-2xl bg-[var(--rs-primary)] px-4 py-3 text-center text-sm font-semibold text-white"
+                  onClick={() => setOpen(false)}
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
