@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X, Search } from "lucide-react";
-import logoUrl from "../assets/logo.jpg"; // place your logo file in src/assets (exported as svg/png)
+import logoUrl from "../assets/logo.png"; // place your logo file in src/assets (exported as svg/png)
 
 const nav = [
   { to: "/rent", label: "Rent" },
