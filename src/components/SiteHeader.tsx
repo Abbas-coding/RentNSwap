@@ -1,121 +1,133 @@
 import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Search } from "lucide-react";
-import logoUrl from "../assets/logo.png"; // place your logo file in src/assets (exported as svg/png)
+import { Menu, X, Search, Leaf } from "lucide-react";
+import logoUrl from "../assets/logo.png";
 
-const nav = [
+const navLinks = [
   { to: "/rent", label: "Rent" },
   { to: "/swap", label: "Swap" },
   { to: "/how-it-works", label: "How it works" },
+  { to: "/community", label: "Community" },
 ];
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-emerald-100">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Brand */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src={logoUrl} alt="Rent & Swap" className="h-16 w-16" />
-            <span className="font-semibold text-lg text-emerald-900">
+    <header className="sticky top-0 z-50 w-full border-b border-emerald-100/70 bg-white/80 backdrop-blur-2xl">
+      <div className="mx-auto flex h-20 max-w-9xl items-center justify-between gap-3 px-4 sm:px-6">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-3 rounded-2xl px-2 py-1">
+          <img src={logoUrl} alt="Rent & Swap" className="h-14 w-14" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-semibold text-emerald-950">
               Rent & Swap
             </span>
-          </Link>
+            <span className="text-xs font-medium uppercase tracking-wide text-emerald-500">
+              Share more. Spend less.
+            </span>
+          </div>
+        </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {nav.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                className={({ isActive }) =>
-                  `text-sm font-medium ${
-                    isActive
-                      ? "text-emerald-900"
-                      : "text-emerald-800/80 hover:text-emerald-900"
-                  }`
-                }
-              >
-                {n.label}
-              </NavLink>
-            ))}
-          </nav>
-          {/* Search (desktop) */}
-          <div className="hidden lg:flex items-center gap-2 flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-700/70" />
+        {/* Search */}
+        <div className="hidden flex-1 items-center lg:flex">
+          <div className="relative w-full max-w-xl">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />
+            <input
+              placeholder="Find cameras, tools, outfits, and more…"
+              className="h-11 w-full rounded-2xl border border-emerald-100 bg-white/90 pl-10 pr-4 text-sm text-slate-700 shadow-sm transition focus:border-[var(--rs-primary)] focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30"
+            />
+          </div>
+        </div>
+
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-6 lg:flex">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                `text-sm font-semibold transition ${
+                  isActive
+                    ? "text-[var(--rs-primary)]"
+                    : "text-slate-500 hover:text-slate-900"
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Actions */}
+        <div className="hidden items-center gap-3 md:flex">
+          <Link
+            to="/list"
+            className="inline-flex h-11 items-center gap-2 rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+          >
+            <Leaf size={16} />
+            List an item
+          </Link>
+          <Link
+            to="/login"
+            className="inline-flex h-11 items-center rounded-2xl bg-[var(--rs-primary)] px-5 text-sm font-semibold text-white shadow-lg shadow-emerald-200/70 transition hover:bg-[var(--rs-primary-dark)]"
+          >
+            Sign in
+          </Link>
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          className="md:hidden rounded-2xl border border-emerald-100 p-2 text-slate-600"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-label="Toggle navigation"
+        >
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      {open && (
+        <div className="border-t border-emerald-50 bg-white/95 px-4 pb-6 pt-4 shadow-2xl md:hidden">
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />
               <input
-                placeholder="What are you looking for?"
-                className="w-full rounded-xl border border-emerald-200 bg-white/70 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                className="h-11 w-full rounded-2xl border border-emerald-100 bg-white pl-10 pr-4 text-sm text-slate-700"
+                placeholder="Search the marketplace"
               />
             </div>
           </div>
-
-          {/* Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link to="/list" className="btn-ghost">
-              List your item
+          <nav className="grid gap-2">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50"
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="mt-4 grid gap-3">
+            <Link
+              to="/list"
+              className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"
+              onClick={() => setOpen(false)}
+            >
+              List an item
             </Link>
-            <Link to="/login" className="btn-primary">
-              Sign In
+            <Link
+              to="/login"
+              className="rounded-2xl bg-[var(--rs-primary)] px-4 py-3 text-center text-sm font-semibold text-white"
+              onClick={() => setOpen(false)}
+            >
+              Sign in
             </Link>
           </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-emerald-100/60"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
-
-        {/* Mobile sheet */}
-        {open && (
-          <div className="md:hidden pb-4 animate-in fade-in slide-in-from-top-2">
-            <div className="flex items-center gap-2 py-2">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-700/70" />
-                <input
-                  className="w-full rounded-xl border border-emerald-200 bg-white/70 pl-9 pr-3 py-2 text-sm"
-                  placeholder="Search items"
-                />
-              </div>
-            </div>
-            <nav className="grid gap-2">
-              {nav.map((n) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  className="rounded-lg px-3 py-2 text-emerald-900 hover:bg-emerald-100/60"
-                  onClick={() => setOpen(false)}
-                >
-                  {n.label}
-                </NavLink>
-              ))}
-            </nav>
-            <div className="mt-3 flex items-center gap-2">
-              <Link
-                to="/list"
-                className="btn-ghost flex-1"
-                onClick={() => setOpen(false)}
-              >
-                List your item
-              </Link>
-              <Link
-                to="/login"
-                className="btn-primary flex-1"
-                onClick={() => setOpen(false)}
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </header>
   );
 }
