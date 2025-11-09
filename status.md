@@ -3,19 +3,19 @@
 _Last updated: 2025-11-09_
 
 ## ✅ Current State
-- **Auth UI & API wired:** Login/Signup screens follow the mint/sky theme, call the Express/Mongo backend, and persist JWTs (manual storage via `authStorage`).
-- **Backend foundation live:** Node/Express service (Mongo-connected) exposes `/api/auth/signup` and `/api/auth/login`, with modular structure ready for additional modules.
-- **Routing & placeholders built:** Home, Browse, Swap, How It Works, Community, Dashboard, Inbox, and List Item pages scaffolded per execution plan; protected routes enforce auth.
-- **Layout polish:** Header/footer match the design guide; auth pages use minimal chrome; logout clears tokens.
+- **Full-stack auth & listings:** Login/Signup + listing creation call live Express/Mongo APIs; persisted JWTs power protected routes and logout now clears state globally.
+- **Domain models & APIs shipped:** Items, bookings, swaps, conversations, and insights have mongoose schemas, controllers, and routes (with seed data + scripts) so the app can show real data.
+- **Data-driven UI:** Home, Browse, Swap Hub, Community, Dashboard, Inbox, and List Item consume backend endpoints (items, bookings, swaps, conversations, insights) instead of static placeholders.
+- **Owner dashboard & inbox workflows:** Booking list, checklist, conversation threads, and listing form all interact with MongoDB, demonstrating end-to-end flows.
 
 ## 📋 Upcoming Tasks
-1. **Token-aware auth context:** Replace manual storage with React context/provider that hydrates user profile (`/auth/me` endpoint TBD).
-2. **Item Service MVP:** Define item schema + CRUD endpoints, connect listing pages via React Query, and seed sample inventory.
-3. **Booking workflow:** Add booking model/service, availability validation, and UI modals with optimistic states.
-4. **Swap engine & inbox:** Implement swap proposal routes, negotiation states, and hook the Inbox placeholder into real data.
-5. **Messaging + notifications:** Introduce message threads (REST first, Socket.io later) and toast/snackbar feedback on key actions.
-6. **Testing & docs:** Add API integration tests (supertest), component/e2e tests for auth flow, and expand README with troubleshooting tips.
+1. **Token-aware auth context:** Replace manual storage with a React context + `/auth/me` endpoint for role-aware UI and auto-refresh.
+2. **Booking/swap actions in UI:** Add booking modal + approval buttons, swap proposal form, and integrate mutations from the new APIs.
+3. **Messaging composer + real-time:** Implement send-message UI, optimistic updates, and later Socket.io for live threads and notifications.
+4. **Advanced filters & search:** Wire category/price/location filters and map preview to backend queries; add pagination/infinite scroll.
+5. **Payments & deposits:** Integrate Stripe/PayPal, escrow logic, and secure deposit release; document fallback flow.
+6. **Testing & hardening:** Supertest integration suite, frontend component/e2e tests, rate limiting, validation, and production-ready logging.
 
 ## 📈 Progress Estimate
-- **Completed:** ~15% — foundations, auth slice, routing, and UI scaffolding in place.
-- **Remaining:** ~85% — core rental/swap features, messaging, payment/deposit handling, admin tooling, and production hardening.
+- **Completed:** ~55% — auth slice, backend modules, seeded DB, and all primary screens now operate on real data.
+- **Remaining:** ~45% — transactional UI (bookings/swaps/messaging actions), payments, admin tooling, auth context, and full QA+. 

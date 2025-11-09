@@ -4,6 +4,11 @@ import dotenv from "dotenv";
 import path from "path";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth";
+import itemRoutes from "./routes/items";
+import bookingRoutes from "./routes/bookings";
+import swapRoutes from "./routes/swaps";
+import conversationRoutes from "./routes/conversations";
+import insightsRoutes from "./routes/insights";
 import { errorHandler, notFound } from "./middleware/error";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
@@ -26,6 +31,11 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/swaps", swapRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/insights", insightsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
