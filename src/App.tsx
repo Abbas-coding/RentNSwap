@@ -10,6 +10,8 @@ import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
 import Inbox from "./pages/Inbox";
 import ListItem from "./pages/ListItem";
+import ItemDetails from "./pages/ItemDetails";
+import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -21,11 +23,20 @@ export default function App() {
         <Route path="/swap" element={<SwapHub />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/items/:itemId" element={<ItemDetails />} />
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

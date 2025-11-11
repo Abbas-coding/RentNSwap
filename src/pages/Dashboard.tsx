@@ -4,9 +4,10 @@ import { bookingsApi, type Booking } from "@/lib/api";
 const ownerWidgets = [
   {
     title: "Pending approvals",
-    description: "Incoming bookings or swap proposals awaiting your decision.",
+    description: "Incoming bookings awaiting your decision.",
     key: "pending",
   },
+  { title: "Approved", description: "Requests you’ve approved but not yet marked active.", key: "approved" },
   { title: "Active rentals", description: "Keep tabs on return dates and deposits.", key: "active" },
   { title: "Completed", description: "Wrap reviews and deposit releases.", key: "completed" },
 ];

@@ -41,11 +41,18 @@ export default function SwapHub() {
 
   useEffect(() => {
     itemsApi.list().then((res) => setItems(res.items));
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setOwnedItems([]);
+      return;
+    }
     itemsApi
       .list({ owned: true })
       .then((res) => setOwnedItems(res.items))
       .catch(() => setOwnedItems([]));
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     refreshSwaps();
@@ -291,7 +298,7 @@ export default function SwapHub() {
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Propose a swap
             </p>
-            {isAuthenticated ? (
+            {isAuthenticated ? ownedItems.length ? (
               <form className="mt-4 space-y-4" onSubmit={handleSwapSubmit}>
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wide text-slate-500">
@@ -352,6 +359,10 @@ export default function SwapHub() {
                   Send proposal
                 </button>
               </form>
+            ) : (
+              <p className="mt-4 rounded-2xl border border-emerald-100 p-4 text-sm text-slate-500">
+                Add a listing first—only your items can be offered in a swap.
+              </p>
             ) : (
               <p className="mt-4 rounded-2xl border border-emerald-100 p-4 text-sm text-slate-500">
                 Sign in to send swap proposals and see responses.

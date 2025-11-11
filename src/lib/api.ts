@@ -45,6 +45,7 @@ export interface AuthUser {
   id: string;
   email?: string;
   phone?: string;
+  role?: "user" | "admin";
   createdAt: string;
 }
 
@@ -76,6 +77,7 @@ export interface Booking {
   endDate: string;
   status: string;
   deposit: number;
+  createdAt?: string;
 }
 
 export interface Swap {
@@ -88,6 +90,15 @@ export interface Swap {
   status: string;
   notes?: string;
   updatedAt: string;
+}
+
+export interface Review {
+  _id: string;
+  item: string;
+  rating: number;
+  comment?: string;
+  fromUser: { email?: string } | string;
+  createdAt: string;
 }
 
 export interface ConversationSummary {
@@ -129,6 +140,7 @@ export const itemsApi = {
     const qs = search.toString();
     return apiRequest<{ items: Item[] }>(`/api/items${qs ? `?${qs}` : ""}`);
   },
+  get: (id: string) => apiRequest<{ item: Item; reviews: Review[]; reviewStats: { count: number; average: number } }>(`/api/items/${id}`),
   create: (payload: Partial<Item>) =>
     apiRequest<{ item: Item }>("/api/items", {
       method: "POST",
@@ -174,6 +186,24 @@ export const swapsApi = {
       body: JSON.stringify(payload),
       auth: true,
     }),
+};
+
+export const reviewsApi = {
+  listForItem: (itemId: string) =>
+    apiRequest<{ reviews: Review[]; stats: { count: number; average: number } }>(`/api/reviews/item/${itemId}`),
+  create: (payload: { itemId: string; bookingId: string; rating: number; comment?: string }) =>
+    apiRequest<{ review: Review }>("/api/reviews", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      auth: true,
+    }),
+};
+
+export const adminApi = {
+  overview: () => apiRequest<{ stats: Record<string, number>; latestBookings: Booking[]; topCategories: { _id: string; total: number }[] }>(
+    "/api/admin/overview",
+    { auth: true }
+  ),
 };
 
 export const insightsApi = {

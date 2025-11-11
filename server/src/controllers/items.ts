@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import type { Response } from "express";
 import Item from "../models/Item";
+import Review from "../models/Review";
 import type { FilterQuery } from "mongoose";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
@@ -75,4 +76,27 @@ export const createItem = asyncHandler(async (req: AuthenticatedRequest, res: Re
   });
 
   res.status(201).json({ item });
+});
+
+export const getItem = asyncHandler(async (req, res) => {
+  const item = await Item.findById(req.params.id).populate("owner", "email");
+  if (!item) {
+    res.status(404);
+    throw new Error("Item not found");
+  }
+
+  const reviews = await Review.find({ item: item._id })
+    .sort({ createdAt: -1 })
+    .populate("fromUser", "email")
+    .lean();
+  const stats =
+    reviews.length > 0
+      ? {
+          count: reviews.length,
+          average:
+            reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length,
+        }
+      : { count: 0, average: 0 };
+
+  res.json({ item, reviews, reviewStats: stats });
 });

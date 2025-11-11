@@ -203,6 +203,12 @@ export default function Browse() {
                     </div>
                     <div className="flex gap-2 pt-2">
                       <button
+                        className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[var(--rs-primary)]"
+                        onClick={() => navigate(`/items/${listing._id}`)}
+                      >
+                        View details
+                      </button>
+                      <button
                         className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-[var(--rs-primary)] transition hover:border-[var(--rs-primary)]"
                         onClick={() => openBookingModal(listing)}
                       >

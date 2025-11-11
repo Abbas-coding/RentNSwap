@@ -74,6 +74,14 @@ export default function SiteHeader() {
           )}
           {isAuthenticated ? (
             <>
+              {user?.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className="inline-flex h-11 items-center rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 to="/dashboard"
                 className="inline-flex h-11 items-center gap-2 rounded-2xl border border-emerald-100 px-4 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
@@ -144,6 +152,15 @@ export default function SiteHeader() {
           <div className="mt-4 grid gap-3">
             {isAuthenticated ? (
               <>
+                {user?.role === "admin" && (
+                  <Link
+                    to="/admin"
+                    className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"
+                    onClick={() => setOpen(false)}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   className="rounded-2xl border border-emerald-100 px-4 py-3 text-center text-sm font-semibold text-slate-700"

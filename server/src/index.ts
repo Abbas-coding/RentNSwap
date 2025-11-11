@@ -9,6 +9,9 @@ import bookingRoutes from "./routes/bookings";
 import swapRoutes from "./routes/swaps";
 import conversationRoutes from "./routes/conversations";
 import insightsRoutes from "./routes/insights";
+import reviewRoutes from "./routes/reviews";
+import adminRoutes from "./routes/admin";
+import disputeRoutes from "./routes/disputes";
 import { errorHandler, notFound } from "./middleware/error";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
@@ -36,6 +39,9 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/swaps", swapRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/insights", insightsRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/disputes", disputeRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
