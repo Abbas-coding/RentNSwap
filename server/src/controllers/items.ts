@@ -1,14 +1,37 @@
 import asyncHandler from "express-async-handler";
 import type { Response } from "express";
 import Item from "../models/Item";
+import type { FilterQuery } from "mongoose";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
-export const listItems = asyncHandler(async (req, res) => {
-  const { category, featured } = req.query;
-  const query: Record<string, unknown> = {};
+export const listItems = asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const { category, featured, owned, minPrice, maxPrice, location, q } = req.query;
+  const query: FilterQuery<typeof Item> = {};
+
   if (category) query.category = category;
   if (featured === "true") {
     query.tags = { $in: ["featured"] };
+  }
+  if (owned === "true") {
+    if (!req.user) {
+      res.status(401);
+      throw new Error("Not authenticated");
+    }
+    query.owner = req.user._id;
+  }
+  if (location) {
+    query.location = { $regex: new RegExp(String(location), "i") };
+  }
+  if (minPrice || maxPrice) {
+    query.pricePerDay = {};
+    if (minPrice) query.pricePerDay.$gte = Number(minPrice);
+    if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
+  }
+  if (q) {
+    query.$or = [
+      { title: { $regex: new RegExp(String(q), "i") } },
+      { description: { $regex: new RegExp(String(q), "i") } },
+    ];
   }
 
   const items = await Item.find(query).populate("owner", "email phone");

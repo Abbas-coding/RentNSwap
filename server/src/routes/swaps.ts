@@ -4,8 +4,9 @@ import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
+router.use(requireAuth);
 router.get("/", listSwaps);
-router.post("/", requireAuth, createSwap);
-router.patch("/:id", requireAuth, updateSwapStatus);
+router.post("/", createSwap);
+router.patch("/:id", updateSwapStatus);
 
 export default router;

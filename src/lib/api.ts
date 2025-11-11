@@ -41,18 +41,21 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   return data as T;
 }
 
+export interface AuthUser {
+  id: string;
+  email?: string;
+  phone?: string;
+  createdAt: string;
+}
+
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    email?: string;
-    phone?: string;
-    createdAt: string;
-  };
+  user: AuthUser;
 }
 
 export interface Item {
   _id: string;
+  owner?: { _id: string; email?: string };
   title: string;
   category: string;
   description: string;
@@ -75,6 +78,18 @@ export interface Booking {
   deposit: number;
 }
 
+export interface Swap {
+  _id: string;
+  proposer: { _id: string; email?: string };
+  receiver: { _id: string; email?: string };
+  proposerItem?: Item;
+  receiverItem?: Item;
+  cashAdjustment?: number;
+  status: string;
+  notes?: string;
+  updatedAt: string;
+}
+
 export interface ConversationSummary {
   _id: string;
   subject: string;
@@ -86,6 +101,7 @@ export interface Conversation {
   _id: string;
   subject: string;
   messages: { sender: { email?: string } | string; text: string; createdAt: string }[];
+  updatedAt: string;
 }
 
 export const authApi = {
@@ -99,6 +115,7 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  me: () => apiRequest<{ user: AuthUser }>("/api/auth/me", { auth: true }),
 };
 
 export const itemsApi = {
@@ -129,18 +146,47 @@ export const bookingsApi = {
       body: JSON.stringify(payload),
       auth: true,
     }),
+  updateStatus: (id: string, status: string) =>
+    apiRequest<{ booking: Booking }>(`/api/bookings/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+      auth: true,
+    }),
 };
 
 export const swapsApi = {
-  list: () => apiRequest<{ swaps: unknown[] }>("/api/swaps"),
+  list: () => apiRequest<{ swaps: Swap[] }>("/api/swaps", { auth: true }),
+  create: (payload: {
+    proposerItemId: string;
+    receiverItemId: string;
+    receiverId: string;
+    cashAdjustment?: number;
+    notes?: string;
+  }) =>
+    apiRequest<{ swap: Swap }>("/api/swaps", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      auth: true,
+    }),
+  updateStatus: (id: string, payload: { status: string; cashAdjustment?: number; notes?: string }) =>
+    apiRequest<{ swap: Swap }>(`/api/swaps/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      auth: true,
+    }),
 };
 
 export const insightsApi = {
-  overview: () => apiRequest<{ stats: Record<string, number>; trending: { title: string; price: string }[] }>("/api/insights/overview"),
+  overview: () =>
+    apiRequest<{
+      stats: Record<string, number>;
+      trending: { title: string; price: string }[];
+    }>("/api/insights/overview"),
   community: () =>
-    apiRequest<{ stats: { sharedItems: number; locations: number; avgRating: number }; testimonials: { quote: string; author: string }[] }>(
-      "/api/insights/community"
-    ),
+    apiRequest<{
+      stats: { sharedItems: number; locations: number; avgRating: number };
+      testimonials: { quote: string; author: string }[];
+    }>("/api/insights/community"),
 };
 
 export const conversationsApi = {

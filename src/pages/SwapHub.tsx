@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRightLeft, Coins, MessageCircle, ShieldCheck } from "lucide-react";
-import { itemsApi, swapsApi, type Item } from "@/lib/api";
+import { itemsApi, swapsApi, type Item, type Swap } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const steps = [
   { title: "Propose", body: "Pick your item + optional cash adjustment to initiate a swap." },
@@ -10,23 +12,201 @@ const steps = [
 
 export default function SwapHub() {
   const [items, setItems] = useState<Item[]>([]);
-  const [swaps, setSwaps] = useState<any[]>([]);
+  const [ownedItems, setOwnedItems] = useState<Item[]>([]);
+  const [swaps, setSwaps] = useState<Swap[]>([]);
+  const [swapForm, setSwapForm] = useState({
+    proposerItemId: "",
+    receiverItemId: "",
+    cashAdjustment: "0",
+  });
+  const [swapStatus, setSwapStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [counterInput, setCounterInput] = useState<{ id: string; value: string } | null>(null);
+
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  const refreshSwaps = async () => {
+    if (!isAuthenticated) {
+      setSwaps([]);
+      return;
+    }
+    try {
+      const refreshed = await swapsApi.list();
+      setSwaps(refreshed.swaps);
+    } catch {
+      setSwaps([]);
+    }
+  };
 
   useEffect(() => {
     itemsApi.list().then((res) => setItems(res.items));
-    swapsApi.list().then((res) => setSwaps(res.swaps));
+    itemsApi
+      .list({ owned: true })
+      .then((res) => setOwnedItems(res.items))
+      .catch(() => setOwnedItems([]));
   }, []);
 
-  const suggestedMatches = items.slice(0, 2).map((item, index) => {
-    const partner = items[(index + 1) % items.length];
-    return {
-      ownerItem: item.title,
-      owner: item.location,
-      seekerItem: partner?.title ?? item.title,
-      seeker: partner?.location ?? "Unknown",
-      adjustment: item.swapEligible ? "+$40" : "even swap",
-    };
-  });
+  useEffect(() => {
+    refreshSwaps();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (ownedItems.length && items.length) {
+      setSwapForm((prev) => ({
+        ...prev,
+        proposerItemId: prev.proposerItemId || ownedItems[0]._id,
+        receiverItemId:
+          prev.receiverItemId || items.find((item) => item._id !== ownedItems[0]._id)?._id || "",
+      }));
+    }
+  }, [items, ownedItems]);
+
+  const suggestedMatches = useMemo(() => {
+    if (items.length < 2) return [];
+    return items.slice(0, 2).map((item, index) => {
+      const partner = items[(index + 1) % items.length];
+      return {
+        ownerItem: item.title,
+        owner: item.location,
+        seekerItem: partner?.title ?? item.title,
+        seeker: partner?.location ?? "Unknown",
+        adjustment: item.swapEligible ? "+$40" : "even swap",
+      };
+    });
+  }, [items]);
+
+  const handleSwapSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSwapStatus(null);
+
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: { pathname: "/swap" } } });
+      return;
+    }
+
+    const proposerItem = ownedItems.find((item) => item._id === swapForm.proposerItemId);
+    const receiverItem = items.find((item) => item._id === swapForm.receiverItemId);
+
+    if (!proposerItem || !receiverItem || !receiverItem.owner?._id) {
+      setSwapStatus({ type: "error", message: "Select two valid items to propose a swap." });
+      return;
+    }
+
+    try {
+      await swapsApi.create({
+        proposerItemId: proposerItem._id,
+        receiverItemId: receiverItem._id,
+        receiverId: receiverItem.owner._id,
+        cashAdjustment: Number(swapForm.cashAdjustment) || 0,
+      });
+      setSwapStatus({ type: "success", message: "Swap proposal sent!" });
+      refreshSwaps();
+    } catch (error) {
+      setSwapStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Unable to send swap proposal.",
+      });
+    }
+  };
+
+  const handleSwapAction = async (
+    swap: Swap,
+    payload: { status: string; cashAdjustment?: number; notes?: string }
+  ) => {
+    try {
+      await swapsApi.updateStatus(swap._id, payload);
+      setActionMessage(`Swap "${swap.proposerItem?.title}" updated to ${payload.status}.`);
+      setCounterInput(null);
+      refreshSwaps();
+    } catch (error) {
+      setActionMessage(
+        error instanceof Error ? error.message : "Unable to update swap at this time."
+      );
+    }
+  };
+
+  const getSwapActions = (swap: Swap) => {
+    if (!user) return [];
+    const isReceiver = swap.receiver?._id === user.id;
+    const isProposer = swap.proposer?._id === user.id;
+
+    if (swap.status === "pending" && isReceiver) {
+      return ["accept", "counter", "reject"];
+    }
+    if (swap.status === "counter") {
+      if (isProposer) {
+        return ["accept", "reject"];
+      }
+      if (isReceiver) {
+        return ["counter"];
+      }
+    }
+    return [];
+  };
+
+  const renderSwapActions = (swap: Swap) => {
+    const actions = getSwapActions(swap);
+    if (!actions.length) return null;
+
+    return (
+      <div className="mt-3 space-y-3 text-xs text-slate-600">
+        <div className="flex flex-wrap gap-2">
+          {actions.includes("accept") && (
+            <button
+              className="rounded-2xl border border-emerald-100 px-3 py-2 font-semibold text-[var(--rs-primary)] transition hover:border-[var(--rs-primary)]"
+              onClick={() => handleSwapAction(swap, { status: "accepted" })}
+            >
+              Accept
+            </button>
+          )}
+          {actions.includes("reject") && (
+            <button
+              className="rounded-2xl border border-emerald-100 px-3 py-2 font-semibold text-red-500 transition hover:border-red-500"
+              onClick={() => handleSwapAction(swap, { status: "rejected" })}
+            >
+              Reject
+            </button>
+          )}
+          {actions.includes("counter") && (
+            <button
+              className="rounded-2xl border border-emerald-100 px-3 py-2 font-semibold text-slate-600 transition hover:border-[var(--rs-primary)]"
+              onClick={() =>
+                setCounterInput({
+                  id: swap._id,
+                  value: String(swap.cashAdjustment ?? 0),
+                })
+              }
+            >
+              Counter offer
+            </button>
+          )}
+        </div>
+        {counterInput?.id === swap._id && (
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSwapAction(swap, {
+                status: "counter",
+                cashAdjustment: Number(counterInput.value) || 0,
+              });
+            }}
+          >
+            <input
+              type="number"
+              className="w-24 rounded-2xl border border-emerald-100 px-3 py-1 text-xs"
+              value={counterInput.value}
+              onChange={(e) => setCounterInput((prev) => (prev ? { ...prev, value: e.target.value } : prev))}
+            />
+            <button className="rounded-2xl bg-[var(--rs-primary)] px-3 py-1 text-xs font-semibold text-white">
+              Send counter
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  };
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -53,7 +233,9 @@ export default function SwapHub() {
           <div className="rounded-3xl border border-emerald-100 p-6">
             <div className="mb-4 flex items-center gap-3">
               <ArrowRightLeft className="text-[var(--rs-primary)]" size={20} />
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Suggested matches</p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Suggested matches
+              </p>
             </div>
             <div className="space-y-4">
               {suggestedMatches.map((match, idx) => (
@@ -71,13 +253,17 @@ export default function SwapHub() {
                   </div>
                 </article>
               ))}
+              {suggestedMatches.length === 0 && (
+                <p className="text-sm text-slate-500">Add more items to unlock suggestions.</p>
+              )}
             </div>
           </div>
-
           <div className="rounded-3xl border border-emerald-100 p-6">
             <div className="mb-4 flex items-center gap-3">
               <MessageCircle className="text-sky-500" size={20} />
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Recent proposals</p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Recent proposals
+              </p>
             </div>
             <div className="space-y-4">
               {swaps.slice(0, 3).map((proposal) => (
@@ -100,13 +286,91 @@ export default function SwapHub() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-6 text-center text-sm text-slate-600">
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            <Coins className="text-amber-400" size={18} />
-            <ShieldCheck className="text-emerald-500" size={18} />
-            <span>Escrow, deposits, and dispute handling will plug into this flow in upcoming sprints.</span>
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-3xl border border-emerald-100 p-6">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Propose a swap
+            </p>
+            {isAuthenticated ? (
+              <form className="mt-4 space-y-4" onSubmit={handleSwapSubmit}>
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-slate-500">
+                    Your item
+                  </label>
+                  <select
+                    className="w-full rounded-2xl border border-emerald-100 px-4 py-2 text-sm"
+                    value={swapForm.proposerItemId}
+                    onChange={(e) => setSwapForm((prev) => ({ ...prev, proposerItemId: e.target.value }))}
+                  >
+                    {ownedItems.map((item) => (
+                      <option key={item._id} value={item._id}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-slate-500">
+                    Item to request
+                  </label>
+                  <select
+                    className="w-full rounded-2xl border border-emerald-100 px-4 py-2 text-sm"
+                    value={swapForm.receiverItemId}
+                    onChange={(e) => setSwapForm((prev) => ({ ...prev, receiverItemId: e.target.value }))}
+                  >
+                    {items.map((item) => (
+                      <option key={item._id} value={item._id}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-slate-500">
+                    Cash adjustment
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full rounded-2xl border border-emerald-100 px-4 py-2 text-sm"
+                    value={swapForm.cashAdjustment}
+                    onChange={(e) => setSwapForm((prev) => ({ ...prev, cashAdjustment: e.target.value }))}
+                  />
+                </div>
+                {swapStatus && (
+                  <p
+                    className={`text-sm ${
+                      swapStatus.type === "success" ? "text-emerald-600" : "text-red-500"
+                    }`}
+                  >
+                    {swapStatus.message}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  className="w-full rounded-2xl bg-[var(--rs-primary)] px-4 py-2 text-sm font-semibold text-white"
+                >
+                  Send proposal
+                </button>
+              </form>
+            ) : (
+              <p className="mt-4 rounded-2xl border border-emerald-100 p-4 text-sm text-slate-500">
+                Sign in to send swap proposals and see responses.
+              </p>
+            )}
+          </div>
+          <div className="rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-6 text-center text-sm text-slate-600">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <Coins className="text-amber-400" size={18} />
+              <ShieldCheck className="text-emerald-500" size={18} />
+              <span>Escrow, deposits, and dispute handling will plug into this flow in upcoming sprints.</span>
+            </div>
           </div>
         </div>
+        {actionMessage && (
+          <p className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 text-center text-xs text-emerald-700">
+            {actionMessage}
+          </p>
+        )}
       </div>
     </section>
   );

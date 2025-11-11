@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X, Search, Leaf } from "lucide-react";
 import logoUrl from "../assets/logo.png";
-import { authStorage, useAuthStatus } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { to: "/rent", label: "Rent" },
@@ -13,11 +13,11 @@ const navLinks = [
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const isAuthed = useAuthStatus();
   const navigate = useNavigate();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const handleLogout = () => {
-    authStorage.clearToken();
+    logout();
     navigate("/");
   };
 
@@ -69,7 +69,10 @@ export default function SiteHeader() {
 
         {/* Actions */}
         <div className="hidden items-center gap-3 md:flex">
-          {isAuthed ? (
+          {isAuthenticated && user?.email && (
+            <span className="text-xs text-slate-400">Hi, {user.email}</span>
+          )}
+          {isAuthenticated ? (
             <>
               <Link
                 to="/dashboard"
@@ -139,7 +142,7 @@ export default function SiteHeader() {
             ))}
           </nav>
           <div className="mt-4 grid gap-3">
-            {isAuthed ? (
+            {isAuthenticated ? (
               <>
                 <Link
                   to="/dashboard"

@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, type Location } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { authApi, ApiError } from "@/lib/api";
-import { authStorage } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginSchema = z.object({
   identifier: z
@@ -39,13 +39,15 @@ export default function Login() {
     [location.state]
   );
   const [serverError, setServerError] = useState<string | null>(null);
+  const { setSession } = useAuth();
 
   const onSubmit = async (data: LoginForm) => {
     setServerError(null);
     try {
       const response = await authApi.login(data);
-      authStorage.setToken(response.token);
-      navigate("/");
+      setSession(response.token, response.user);
+      const from = (location.state as { from?: Location })?.from;
+      navigate(from?.pathname ?? "/");
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : "Unable to sign in right now.";

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User, { type IUser } from "../models/User";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 const isEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
 
@@ -84,4 +85,13 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   const token = buildToken(user.id);
   res.json({ token, user: formatUser(user) });
+});
+
+export const me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    res.status(401);
+    throw new Error("Not authenticated");
+  }
+
+  res.json({ user: formatUser(req.user) });
 });

@@ -1,12 +1,20 @@
 import { Navigate, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useAuthStatus } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const isAuthed = useAuthStatus();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  if (!isAuthed) {
+  if (loading) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center text-sm text-slate-500">
+        Checking access…
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
