@@ -15,7 +15,11 @@ export default function ItemDetails() {
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [eligibleBookings, setEligibleBookings] = useState<Booking[]>([]);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  const isOwner = useMemo(() => {
+    return isAuthenticated && user?.id === item?.owner?._id;
+  }, [isAuthenticated, user, item]);
 
   useEffect(() => {
     if (!itemId) return;
@@ -162,10 +166,24 @@ export default function ItemDetails() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">
+                  <button
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+                      isOwner
+                        ? "cursor-not-allowed bg-slate-50 text-slate-400"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                    disabled={isOwner}
+                  >
                     Request Swap
                   </button>
-                  <button className="rounded-2xl bg-[var(--rs-primary)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200/60 transition hover:opacity-90">
+                  <button
+                    className={`rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg transition ${
+                      isOwner
+                        ? "cursor-not-allowed bg-slate-50 text-slate-400"
+                        : "bg-[var(--rs-primary)] text-white shadow-emerald-200/60 hover:opacity-90"
+                    }`}
+                    disabled={isOwner}
+                  >
                     Book Now
                   </button>
                 </div>

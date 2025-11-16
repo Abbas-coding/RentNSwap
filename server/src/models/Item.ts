@@ -27,7 +27,7 @@ const itemSchema = new Schema<IItem>(
     pricePerDay: { type: Number, required: true },
     deposit: { type: Number, default: 0 },
     location: { type: String, required: true },
-    rating: { type: Number, default: 4.8 },
+    rating: { type: Number, default: 0 },
     swapEligible: { type: Boolean, default: false },
     availability: { type: [String], default: [] },
     images: { type: [String], default: [] },

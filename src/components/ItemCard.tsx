@@ -4,14 +4,17 @@ import { type Item, API_BASE_URL } from "@/lib/api";
 
 interface ItemCardProps {
   item: Item;
-  // We can add more props for event handlers like onBook, onSwap etc. later
+  currentUserId?: string;
+  onBookClick: (item: Item) => void;
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, currentUserId, onBookClick }: ItemCardProps) {
   const imageUrl =
     item.images && item.images.length > 0
       ? `${API_BASE_URL}/${item.images[0]}`
       : "/placeholder.svg"; // A fallback image
+
+  const isOwner = currentUserId === item.owner?._id;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
@@ -48,10 +51,29 @@ export function ItemCard({ item }: ItemCardProps) {
           >
             View details
           </Link>
-          {/* We can pass handlers for these actions as props if needed */}
-          <button className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-[var(--rs-primary)] transition hover:border-[var(--rs-primary)]">
+          <button
+            className={`flex-1 rounded-2xl px-3 py-2 text-xs font-semibold transition ${
+              isOwner
+                ? "cursor-not-allowed bg-slate-50 text-slate-400"
+                : "border border-emerald-100 text-[var(--rs-primary)] hover:border-[var(--rs-primary)]"
+            }`}
+            onClick={() => onBookClick(item)}
+            disabled={isOwner}
+          >
             Book item
           </button>
+          {item.swapEligible && (
+            <button
+              className={`flex-1 rounded-2xl px-3 py-2 text-xs font-semibold transition ${
+                isOwner
+                  ? "cursor-not-allowed bg-slate-50 text-slate-400"
+                  : "border border-emerald-100 text-slate-600 hover:border-[var(--rs-primary)]"
+              }`}
+              disabled={isOwner}
+            >
+              Swap
+            </button>
+          )}
         </div>
       </div>
     </article>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SlidersHorizontal, MapPin, Star, Clock4, Filter, Search } from "lucide-react";
 import { bookingsApi, itemsApi, type Item } from "@/lib/api";
@@ -31,8 +31,20 @@ export default function Browse() {
   const [bookingForm, setBookingForm] = useState({ startDate: "", endDate: "" });
   const [bookingStatus, setBookingStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  const isBookingFormValid = useMemo(() => {
+    const { startDate, endDate } = bookingForm;
+    if (!startDate || !endDate) return false;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today's date
+
+    return start < end && start >= today;
+  }, [bookingForm]);
 
   useEffect(() => {
     const params: Record<string, string | boolean> = {};
@@ -56,16 +68,17 @@ export default function Browse() {
       return;
     }
     setBookingItem(item);
-    setBookingForm({ startDate: "", endDate: "" });
-    setBookingStatus(null);
+    setBookingForm({ startDate: "", endDate: "" }); // Reset form on open
+    setBookingStatus(null); // Clear status on open
   };
 
   const submitBooking = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!bookingItem) return;
     setBookingStatus(null);
-    if (!bookingForm.startDate || !bookingForm.endDate) {
-      setBookingStatus({ type: "error", message: "Select start and end dates." });
+
+    if (!isBookingFormValid) {
+      setBookingStatus({ type: "error", message: "Please select valid start and end dates." });
       return;
     }
 
@@ -77,6 +90,9 @@ export default function Browse() {
         deposit: bookingItem.deposit,
       });
       setBookingStatus({ type: "success", message: "Booking requested! Owner will approve shortly." });
+      setTimeout(() => {
+        setBookingItem(null); // Close modal after success
+      }, 2000);
     } catch (error) {
       setBookingStatus({
         type: "error",
@@ -120,7 +136,7 @@ export default function Browse() {
         </button>
       </div>
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        <aside className="space-y-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+        <aside className="space-y-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm h-[300px]">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <Filter size={16} />
             Quick filters
@@ -166,13 +182,13 @@ export default function Browse() {
                 />
               </div>
             </div>
-            <button className="w-full rounded-2xl border border-emerald-50 px-4 py-3 text-left text-xs text-slate-500 transition hover:border-[var(--rs-primary)]">
+            {/* <button className="w-full rounded-2xl border border-emerald-50 px-4 py-3 text-left text-xs text-slate-500 transition hover:border-[var(--rs-primary)]">
               Availability calendar (coming soon)
-            </button>
+            </button> */}
           </div>
-          <div className="rounded-2xl border border-dashed border-emerald-200 p-4 text-center text-xs text-slate-500">
+          {/* <div className="rounded-2xl border border-dashed border-emerald-200 p-4 text-center text-xs text-slate-500">
             Saved filters & alerts will appear here once user preferences ship.
-          </div>
+          </div> */}
         </aside>
         <div className="space-y-6">
           {loading ? (
@@ -188,20 +204,20 @@ export default function Browse() {
                 </div>
               ))}
             </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-8 text-center">
+              <h3 className="text-xl font-semibold text-slate-900">No items found</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Try adjusting your filters or search terms.
+              </p>
+            </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((listing) => (
-                <ItemCard key={listing._id} item={listing} />
+                <ItemCard key={listing._id} item={listing} currentUserId={user?.id} onBookClick={openBookingModal} />
               ))}
             </div>
           )}
-          <div className="rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-8 text-center">
-            <h3 className="text-xl font-semibold text-slate-900">Map & availability grid</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Coming soon — this section will stream paginated inventory via React Query, include a
-              small map preview, and refresh when filters change.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -227,18 +243,24 @@ export default function Browse() {
                 <label className="text-xs uppercase tracking-wide text-slate-500">Start date</label>
                 <input
                   type="date"
-                  className="w-full rounded-2xl border border-emerald-100 px-4 py-2 text-sm"
+                  className={`w-full rounded-2xl border px-4 py-2 text-sm ${
+                    bookingForm.startDate && !isBookingFormValid ? "border-red-400" : "border-emerald-100"
+                  }`}
                   value={bookingForm.startDate}
                   onChange={(e) => setBookingForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wide text-slate-500">End date</label>
                 <input
                   type="date"
-                  className="w-full rounded-2xl border border-emerald-100 px-4 py-2 text-sm"
+                  className={`w-full rounded-2xl border px-4 py-2 text-sm ${
+                    bookingForm.endDate && !isBookingFormValid ? "border-red-400" : "border-emerald-100"
+                  }`}
                   value={bookingForm.endDate}
                   onChange={(e) => setBookingForm((prev) => ({ ...prev, endDate: e.target.value }))}
+                  min={bookingForm.startDate || new Date().toISOString().split('T')[0]} // End date cannot be before start date or today
                 />
               </div>
               <div className="rounded-2xl bg-emerald-50/60 p-3 text-xs text-slate-600">
@@ -256,7 +278,12 @@ export default function Browse() {
               )}
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-[var(--rs-primary)] px-4 py-2 text-sm font-semibold text-white"
+                className={`w-full rounded-2xl px-4 py-2 text-sm font-semibold shadow-lg transition ${
+                  isBookingFormValid
+                    ? "bg-[var(--rs-primary)] text-white shadow-emerald-200/60 hover:opacity-90"
+                    : "cursor-not-allowed bg-slate-100 text-slate-400"
+                }`}
+                disabled={!isBookingFormValid}
               >
                 Submit request
               </button>
