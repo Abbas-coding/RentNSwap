@@ -1,25 +1,34 @@
 import { Link } from "react-router-dom";
 import { Mail, Instagram, Linkedin, Twitter } from "lucide-react";
 
-const productLinks = [
-  { to: "/rent", label: "Browse rentals" },
-  { to: "/swap", label: "Discover swaps" },
-  { to: "/list", label: "List your item" },
-  { to: "/pricing", label: "Pricing" },
-];
-
-const companyLinks = [
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-  { to: "/how-it-works", label: "How it works" },
-  { to: "/careers", label: "Careers" },
-];
-
-const supportLinks = [
-  { to: "/help-center", label: "Help center" },
-  { to: "/trust", label: "Trust & safety" },
-  { to: "/terms", label: "Terms" },
-  { to: "/privacy", label: "Privacy" },
+const footerSections = [
+  {
+    title: "Product",
+    links: [
+      { to: "/browse", label: "Browse rentals" },
+      { to: "/swap", label: "Discover swaps" },
+      { to: "/list", label: "List your item" },
+      { to: "/pricing", label: "Pricing" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { to: "/about", label: "About" },
+      { to: "/contact", label: "Contact" },
+      { to: "/how-it-works", label: "How it works" },
+      { to: "/careers", label: "Careers" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { to: "/help-center", label: "Help center" },
+      { to: "/trust", label: "Trust & safety" },
+      { to: "/terms", label: "Terms" },
+      { to: "/privacy", label: "Privacy" },
+    ],
+  },
 ];
 
 export default function SiteFooter() {
@@ -60,13 +69,13 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        {[productLinks, companyLinks, supportLinks].map((section, idx) => (
-          <div key={idx} className="text-center lg:text-left">
+        {footerSections.map((section) => (
+          <div key={section.title} className="text-center lg:text-left">
             <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {idx === 0 ? "Product" : idx === 1 ? "Company" : "Support"}
+              {section.title}
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
-              {section.map((link) => (
+              {section.links.map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}

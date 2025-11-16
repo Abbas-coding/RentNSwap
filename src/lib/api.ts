@@ -167,7 +167,7 @@ export const itemsApi = {
       });
     }
     const qs = search.toString();
-    return apiRequest<{ items: Item[] }>(`/api/items${qs ? `?${qs}` : ""}`);
+    return apiRequest<{ items: Item[] }>(`/api/items${qs ? `?${qs}` : ""}`,{auth:true});
   },
   get: (id: string) => apiRequest<{ item: Item; reviews: Review[]; reviewStats: { count: number; average: number } }>(`/api/items/${id}`),
   create: (payload: FormData) =>

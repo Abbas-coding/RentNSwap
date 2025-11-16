@@ -18,7 +18,7 @@ export const listItems = asyncHandler(async (req: AuthenticatedRequest, res) => 
       res.status(401);
       throw new Error("Not authenticated");
     }
-    query.owner = req.user._id;
+    query.owner = req.user?._id;
   }
   if (location) {
     query.location = { $regex: new RegExp(String(location), "i") };
@@ -36,6 +36,7 @@ export const listItems = asyncHandler(async (req: AuthenticatedRequest, res) => 
   }
 
   const items = await Item.find(query).populate("owner", "email phone");
+  // console.log(items);
   res.json({ items });
 });
 

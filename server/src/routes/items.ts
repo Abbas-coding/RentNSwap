@@ -1,12 +1,11 @@
 import { Router } from "express";
-import { createItem, listItems, getItem } from "../controllers/items";
-import { requireAuth } from "../middleware/auth";
+import { listItems, createItem, getItem } from "../controllers/items";
+import { requireAuth, optionalAuth } from "../middleware/auth";
 import upload from "../middleware/multer";
 
 const router = Router();
 
-router.get("/", listItems);
-router.get("/:id", getItem);
-router.post("/", requireAuth, upload.array("images", 5), createItem);
+router.route("/").get(optionalAuth, listItems).post(requireAuth, upload.array("images"), createItem);
+router.route("/:id").get(getItem);
 
 export default router;

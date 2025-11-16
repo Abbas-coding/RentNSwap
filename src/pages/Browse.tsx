@@ -64,12 +64,20 @@ export default function Browse() {
 
   const openBookingModal = (item: Item) => {
     if (!isAuthenticated) {
-      navigate("/login", { state: { from: { pathname: "/rent" } } });
+      navigate("/login", { state: { from: { pathname: "/browse" } } });
       return;
     }
     setBookingItem(item);
     setBookingForm({ startDate: "", endDate: "" }); // Reset form on open
     setBookingStatus(null); // Clear status on open
+  };
+
+  const handleSwapClick = (item: Item) => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: { pathname: "/browse" } } });
+      return;
+    }
+    navigate("/propose-swap", { state: { item } });
   };
 
   const submitBooking = async (event: React.FormEvent) => {
@@ -111,7 +119,7 @@ export default function Browse() {
           Browse trusted listings nearby
         </h1>
         <p className="text-base text-slate-500">
-          Filter by what matters most—our Phase 4 scope covers the Renting module first.
+          Filter by what matters most.
         </p>
       </div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm">
@@ -214,7 +222,13 @@ export default function Browse() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((listing) => (
-                <ItemCard key={listing._id} item={listing} currentUserId={user?.id} onBookClick={openBookingModal} />
+                <ItemCard
+                  key={listing._id}
+                  item={listing}
+                  currentUserId={user?.id}
+                  onBookClick={openBookingModal}
+                  onSwapClick={handleSwapClick}
+                />
               ))}
             </div>
           )}
@@ -294,4 +308,3 @@ export default function Browse() {
     </section>
   );
 }
-

@@ -23,3 +23,5 @@ AGENTS.md
 *.njsproj
 *.sln
 *.sw?
+
+uploads/

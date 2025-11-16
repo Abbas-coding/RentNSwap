@@ -6,9 +6,10 @@ interface ItemCardProps {
   item: Item;
   currentUserId?: string;
   onBookClick: (item: Item) => void;
+  onSwapClick: (item: Item) => void;
 }
 
-export function ItemCard({ item, currentUserId, onBookClick }: ItemCardProps) {
+export function ItemCard({ item, currentUserId, onBookClick, onSwapClick }: ItemCardProps) {
   const imageUrl =
     item.images && item.images.length > 0
       ? `${API_BASE_URL}/${item.images[0]}`
@@ -70,6 +71,7 @@ export function ItemCard({ item, currentUserId, onBookClick }: ItemCardProps) {
                   : "border border-emerald-100 text-slate-600 hover:border-[var(--rs-primary)]"
               }`}
               disabled={isOwner}
+              onClick={() => onSwapClick(item)}
             >
               Swap
             </button>

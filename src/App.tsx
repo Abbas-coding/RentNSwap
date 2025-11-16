@@ -12,6 +12,7 @@ import Inbox from "./pages/Inbox";
 import ListItem from "./pages/ListItem";
 import ItemDetails from "./pages/ItemDetails";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProposeSwap from "./pages/ProposeSwap";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
     <Routes>
       <Route element={<RootLayout />}>
         <Route index element={<Home />} />
-        <Route path="/rent" element={<Browse />} />
+        <Route path="/browse" element={<Browse />} />
         <Route path="/swap" element={<SwapHub />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/community" element={<Community />} />
@@ -53,6 +54,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ListItem />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/propose-swap"
+          element={
+            <ProtectedRoute>
+              <ProposeSwap />
             </ProtectedRoute>
           }
         />

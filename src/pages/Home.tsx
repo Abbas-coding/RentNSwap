@@ -14,6 +14,10 @@ const openBookingModal = (item: Item) => {
     console.log("");
   };
 
+  const openSwapModal = (item: Item)=>{
+    console.log("");
+  }
+
 export default function Home() {
   const [stats, setStats] = useState([
     { label: "Items shared", value: "—", detail: "Loading..." },
@@ -59,7 +63,7 @@ export default function Home() {
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link
-            to="/rent"
+            to="/browse"
             className="inline-flex items-center gap-2 rounded-2xl bg-[var(--rs-primary)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200/70 transition hover:bg-[var(--rs-primary-dark)]"
           >
             Explore rentals <ArrowRight size={16} />
@@ -103,7 +107,7 @@ export default function Home() {
         {featuredItems.length > 0 ? (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featuredItems.map((item) => (
-              <ItemCard onBookClick={openBookingModal} key={item._id} item={item} />
+              <ItemCard onSwapClick={openSwapModal} onBookClick={openBookingModal} key={item._id} item={item} />
             ))}
           </div>
         ) : (
