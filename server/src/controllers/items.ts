@@ -61,6 +61,8 @@ export const createItem = asyncHandler(async (req: AuthenticatedRequest, res: Re
     throw new Error("Missing required fields");
   }
 
+  const images = (req.files as Express.Multer.File[])?.map((file) => file.path) ?? [];
+
   const item = await Item.create({
     owner: req.user._id,
     title,
@@ -72,7 +74,7 @@ export const createItem = asyncHandler(async (req: AuthenticatedRequest, res: Re
     swapEligible,
     tags,
     availability: req.body.availability ?? [],
-    images: req.body.images ?? [],
+    images,
   });
 
   res.status(201).json({ item });

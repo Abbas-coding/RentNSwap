@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { itemsApi, reviewsApi, bookingsApi, type Item, type Review, type Booking } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
+const API_BASE_URL = "http://localhost:4000"
+
 export default function ItemDetails() {
   const { itemId } = useParams<{ itemId: string }>();
   const [item, setItem] = useState<Item | null>(null);
@@ -77,7 +79,22 @@ export default function ItemDetails() {
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <p className="text-center text-sm text-slate-500">Loading item…</p>
+        <div className="rounded-3xl bg-white p-8 shadow-lg">
+          <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+            <div className="space-y-3">
+              <div className="aspect-video animate-pulse rounded-3xl bg-slate-200" />
+              <div className="grid grid-cols-4 gap-2">
+                <div className="aspect-square animate-pulse rounded-2xl bg-slate-200" />
+                <div className="aspect-square animate-pulse rounded-2xl bg-slate-200" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-8 w-3/4 animate-pulse rounded-md bg-slate-200" />
+              <div className="h-20 w-full animate-pulse rounded-md bg-slate-200" />
+              <div className="h-6 w-1/4 animate-pulse rounded-md bg-slate-200" />
+            </div>
+          </div>
+        </div>
       </section>
     );
   }
@@ -93,26 +110,73 @@ export default function ItemDetails() {
   return (
     <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <div className="rounded-3xl bg-white p-8 shadow-lg">
-        <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
           <div className="space-y-3">
-            <div className="aspect-video rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-emerald-100" />
-            <p className="text-sm text-slate-500">Category: {item.category}</p>
-            <p className="text-sm text-slate-500">Location: {item.location}</p>
-            <p className="text-sm text-slate-500">Price: ${item.pricePerDay}/day</p>
-            <p className="text-sm text-slate-500">Deposit: ${item.deposit}</p>
-            <p className="text-xs uppercase tracking-wide text-emerald-500">{averageLabel}</p>
+            <div className="aspect-video overflow-hidden rounded-3xl border">
+              <img
+                src={`${API_BASE_URL}/${item.images[0]}`}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {item.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {item.images.map((img, index) => (
+                  <div
+                    key={index}
+                    className="aspect-square overflow-hidden rounded-2xl border"
+                  >
+                    <img
+                      src={`${API_BASE_URL}/${img}`}
+                      alt={`${item.title} thumbnail ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">{item.title}</h1>
+          <div className="flex flex-col">
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-500">
+              {item.category}
+            </p>
+            <h1 className="mt-1 text-3xl font-semibold text-slate-900">{item.title}</h1>
+            <div className="mt-2 flex items-center gap-4 text-sm text-slate-500">
+              <span>
+                Owner:{" "}
+                <span className="font-medium text-slate-700">{item.owner?.email ?? "N/A"}</span>
+              </span>
+              <span>
+                Location: <span className="font-medium text-slate-700">{item.location}</span>
+              </span>
+            </div>
             <p className="mt-4 whitespace-pre-line text-sm text-slate-600">{item.description}</p>
-            <div className="mt-6 rounded-2xl border border-dashed border-emerald-200 p-4 text-sm text-slate-500">
-              Availability: {item.availability?.length ? item.availability.join(", ") : "Flexible"}
+
+            <div className="mt-auto pt-6">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">Price</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    ${item.pricePerDay}
+                    <span className="text-base font-normal text-slate-500">/day</span>
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">
+                    Request Swap
+                  </button>
+                  <button className="rounded-2xl bg-[var(--rs-primary)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200/60 transition hover:opacity-90">
+                    Book Now
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Recent reviews</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Reviews ({stats.count})</h2>
+            <p className="text-sm text-slate-500">{averageLabel}</p>
             <div className="mt-4 space-y-4">
               {reviews.length ? (
                 reviews.map((review) => (
@@ -129,7 +193,7 @@ export default function ItemDetails() {
                   </article>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">Be the first to review this item.</p>
+                <p className="mt-4 text-sm text-slate-500">Be the first to review this item.</p>
               )}
             </div>
           </div>

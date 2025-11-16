@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { itemsApi } from "@/lib/api";
 
-const categories = ["Photography", "Fashion", "Events", "Outdoors", "DIY"];
+const categories = ["Photography", "Fashion", "Events", "Outdoors", "DIY", "Other"];
 const availabilityOptions = ["Weekdays", "Weekends", "Flexible"];
 
 export default function ListItem() {
@@ -15,23 +15,31 @@ export default function ListItem() {
     swapEligible: "no",
   });
   const [availability, setAvailability] = useState<string[]>([]);
+  const [images, setImages] = useState<FileList | null>(null);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setStatus(null);
+
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("category", form.category);
+    formData.append("description", form.description);
+    formData.append("pricePerDay", form.pricePerDay);
+    formData.append("deposit", form.deposit);
+    formData.append("location", form.location);
+    formData.append("swapEligible", form.swapEligible === "yes" ? "true" : "false");
+    availability.forEach((avail) => formData.append("availability[]", avail));
+    if (images) {
+      for (let i = 0; i < images.length; i++) {
+        formData.append("images", images[i]);
+      }
+    }
+
     try {
-      await itemsApi.create({
-        title: form.title,
-        category: form.category,
-        description: form.description,
-        pricePerDay: Number(form.pricePerDay),
-        deposit: Number(form.deposit),
-        location: form.location,
-        swapEligible: form.swapEligible === "yes",
-        availability,
-      });
-      setStatus({ type: "success", message: "Listing saved to MongoDB!" });
+      await itemsApi.create(formData);
+      setStatus({ type: "success", message: "Listing saved successfully!" });
       setForm({
         title: "",
         category: categories[0],
@@ -42,6 +50,12 @@ export default function ListItem() {
         swapEligible: "no",
       });
       setAvailability([]);
+      setImages(null);
+      // also reset the file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = "";
+      }
     } catch (error) {
       setStatus({
         type: "error",
@@ -202,8 +216,15 @@ export default function ListItem() {
 
           <section className="space-y-4 rounded-2xl border border-emerald-100 p-5">
             <p className="text-sm font-semibold text-slate-700">Photos</p>
-            <div className="rounded-2xl border border-dashed border-emerald-200 p-6 text-center text-sm text-slate-500">
-              Drag media here. Cloudinary/S3 integration hooks in later per execution plan.
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wide text-slate-500">Images</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => setImages(e.target.files)}
+                className="w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100"
+              />
             </div>
           </section>
 

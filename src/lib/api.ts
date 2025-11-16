@@ -1,6 +1,6 @@
 import { authStorage } from "@/lib/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export class ApiError extends Error {
   status: number;
@@ -15,6 +15,34 @@ type RequestOptions = RequestInit & { auth?: boolean };
 async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    ...(options.headers ?? {}),
+  };
+
+  if (options.auth) {
+    const token = authStorage.getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message =
+      (data && (data.message as string)) || `Request failed with status ${response.status}`;
+    throw new ApiError(message, response.status);
+  }
+
+  return data as T;
+}
+
+async function apiUploadRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const headers: HeadersInit = {
     ...(options.headers ?? {}),
   };
 
@@ -66,6 +94,7 @@ export interface Item {
   rating: number;
   swapEligible: boolean;
   tags: string[];
+  images: string[];
 }
 
 export interface Booking {
@@ -141,10 +170,10 @@ export const itemsApi = {
     return apiRequest<{ items: Item[] }>(`/api/items${qs ? `?${qs}` : ""}`);
   },
   get: (id: string) => apiRequest<{ item: Item; reviews: Review[]; reviewStats: { count: number; average: number } }>(`/api/items/${id}`),
-  create: (payload: Partial<Item>) =>
-    apiRequest<{ item: Item }>("/api/items", {
+  create: (payload: FormData) =>
+    apiUploadRequest<{ item: Item }>("/api/items", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: payload,
       auth: true,
     }),
 };
@@ -155,7 +184,7 @@ export const bookingsApi = {
   create: (payload: { itemId: string; startDate: string; endDate: string; deposit?: number }) =>
     apiRequest<{ booking: Booking }>("/api/bookings", {
       method: "POST",
-      body: JSON.stringify(payload),
+body: JSON.stringify(payload),
       auth: true,
     }),
   updateStatus: (id: string, status: string) =>
@@ -229,3 +258,4 @@ export const conversationsApi = {
       auth: true,
     }),
 };
+

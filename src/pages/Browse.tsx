@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { SlidersHorizontal, MapPin, Star, Clock4, Filter, Search } from "lucide-react";
 import { bookingsApi, itemsApi, type Item } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { ItemCard } from "@/components/ItemCard";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const chips = [
   { label: "All gear", category: undefined },
@@ -19,8 +21,10 @@ export default function Browse() {
     location: "",
     minPrice: "",
     maxPrice: "",
-    q: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookingItem, setBookingItem] = useState<Item | null>(null);
@@ -37,14 +41,14 @@ export default function Browse() {
     if (filters.location) params.location = filters.location;
     if (filters.minPrice) params.minPrice = filters.minPrice;
     if (filters.maxPrice) params.maxPrice = filters.maxPrice;
-    if (filters.q) params.q = filters.q;
+    if (debouncedSearchTerm) params.q = debouncedSearchTerm;
 
     setLoading(true);
     itemsApi
       .list(Object.keys(params).length ? params : undefined)
       .then((res) => setItems(res.items))
       .finally(() => setLoading(false));
-  }, [activeChip, filters]);
+  }, [activeChip, filters, debouncedSearchTerm]);
 
   const openBookingModal = (item: Item) => {
     if (!isAuthenticated) {
@@ -129,8 +133,8 @@ export default function Browse() {
                 <input
                   className="w-full rounded-2xl border border-emerald-100 px-10 py-2 text-sm"
                   placeholder="Item name, keyword"
-                  value={filters.q}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
@@ -172,59 +176,22 @@ export default function Browse() {
         </aside>
         <div className="space-y-6">
           {loading ? (
-            <div className="rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-8 text-center">
-              Loading listings…
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-3xl border border-emerald-50 bg-white p-4 shadow-sm">
+                  <div className="aspect-video animate-pulse rounded-2xl bg-slate-200" />
+                  <div className="mt-4 space-y-2">
+                    <div className="h-4 w-3/4 animate-pulse rounded-md bg-slate-200" />
+                    <div className="h-4 w-1/2 animate-pulse rounded-md bg-slate-200" />
+                    <div className="h-4 w-2/3 animate-pulse rounded-md bg-slate-200" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((listing) => (
-                <article key={listing._id} className="rounded-3xl border border-emerald-50 bg-white p-4 shadow-sm">
-                  <div className="aspect-video rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-emerald-100" />
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-wide text-emerald-400">
-                      <span>{listing.swapEligible ? "Swap eligible" : "Rental only"}</span>
-                      <span className="text-slate-400">{listing.location}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900">{listing.title}</h3>
-                    <p className="text-sm text-slate-500">${listing.pricePerDay}/day</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-1">
-                        <Star size={14} className="text-amber-400" />
-                        {listing.rating?.toFixed(1) ?? "4.8"}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin size={14} />
-                        {listing.category}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Clock4 size={14} />
-                        1h response
-                      </span>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[var(--rs-primary)]"
-                        onClick={() => navigate(`/items/${listing._id}`)}
-                      >
-                        View details
-                      </button>
-                      <button
-                        className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-[var(--rs-primary)] transition hover:border-[var(--rs-primary)]"
-                        onClick={() => openBookingModal(listing)}
-                      >
-                        Book item
-                      </button>
-                      {listing.swapEligible && (
-                        <button
-                          className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[var(--rs-primary)]"
-                          onClick={() => navigate("/swap", { state: { focusItemId: listing._id } })}
-                        >
-                          Swap
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </article>
+                <ItemCard key={listing._id} item={listing} />
               ))}
             </div>
           )}
@@ -300,3 +267,4 @@ export default function Browse() {
     </section>
   );
 }
+

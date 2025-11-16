@@ -29,6 +29,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
+
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
