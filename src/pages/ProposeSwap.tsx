@@ -57,7 +57,7 @@ function SwapDisplayCard({ item, type }: { item: Item | null; type: "offer" | "r
           <Link
             to={`/items/${item._id}`}
             className="text-xs font-medium text-emerald-600 hover:underline"
-            target="_blank"
+            // target="_blank"
           >
             View Details
           </Link>

@@ -1,90 +1,143 @@
-import { CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Search, CalendarDays, ArrowRightLeft, MessageCircle, ShieldCheck, Repeat, HelpCircle } from "lucide-react";
 
-const phases = [
+const rentSteps = [
   {
-    title: "Phase 4 focus",
-    bullets: [
-      "Auth, Listings, Booking, Swap flows wired to Mongo/Express API",
-      "Messaging preview + dashboard placeholders",
-      "Responsive UI kit aligned with mint & sky palette",
-    ],
+    icon: <Search size={28} className="text-emerald-500" />,
+    title: "1. Find Your Item",
+    description: "Browse our marketplace or use the search bar to find the specific gear you need. Filter by category, location, and price to narrow down your options.",
   },
   {
-    title: "Next steps",
-    bullets: ["Real payment rails", "Cloud storage for media", "Realtime chat + notifications"],
+    icon: <CalendarDays size={28} className="text-emerald-500" />,
+    title: "2. Book Your Dates",
+    description: "Select your desired rental dates on the item's page. The owner will be notified to approve your request.",
+  },
+  {
+    icon: <MessageCircle size={28} className="text-emerald-500" />,
+    title: "3. Coordinate Pickup",
+    description: "Once your booking is approved, use our secure messaging system to arrange a time and place for pickup with the owner.",
+  },
+  {
+    icon: <Repeat size={28} className="text-emerald-500" />,
+    title: "4. Return & Review",
+    description: "Meet the owner to return the item at the end of your rental period. Leave a review to share your experience with the community.",
+  },
+];
+
+const swapSteps = [
+  {
+    icon: <ArrowRightLeft size={28} className="text-sky-500" />,
+    title: "1. Propose a Swap",
+    description: "Find a swap-eligible item you want and click 'Request Swap'. Choose one of your own swap-eligible items to offer in return.",
+  },
+  {
+    icon: <MessageCircle size={28} className="text-sky-500" />,
+    title: "2. Negotiate the Terms",
+    "description": "The other user can accept, reject, or make a counter-offer. You can add cash to balance the value. All negotiations happen in your Swap Hub.",
+  },
+  {
+    icon: <ShieldCheck size={28} className="text-sky-500" />,
+    title: "3. Arrange the Exchange",
+    "description": "Once both parties agree, use our messaging system to coordinate a safe and convenient exchange of the items.",
+  },
+  {
+    icon: <Repeat size={28} className="text-sky-500" />,
+    title: "4. Complete the Swap",
+    "description": "After the exchange, mark the swap as complete. Consider leaving a review for the other user to build trust in the community.",
   },
 ];
 
 const faqs = [
-  { q: "How do deposits work?", a: "Escrow placeholder today; Stripe/PayPal integration arrives next sprint." },
-  { q: "Do swaps require matching value?", a: "No—cash adjustments let owners balance high-value trades." },
-  { q: "What if items get damaged?", a: "Dispute workflows + review system kick in; admin dashboard moderates outcomes." },
+  {
+    q: "How are payments handled?",
+    a: "Currently, payments and deposits are handled directly between users. We plan to integrate a secure escrow system with Stripe for cashless transactions in a future update.",
+  },
+  {
+    q: "What if an item I rent gets damaged?",
+    a: "We recommend documenting the item's condition at pickup. In case of damage, the owner's deposit can be used for repairs. If there's a disagreement, you can file a dispute for admin moderation.",
+  },
+  {
+    q: "Do I have to swap items of the same value?",
+    a: "No. Our swap system allows you to add a cash adjustment to your offer, making it easy to trade items of different values.",
+  },
+  {
+    q: "Is it safe to meet with strangers?",
+    a: "We encourage all users to meet in public, well-lit places. Always check a user's reviews and rating before arranging a rental or swap.",
+  },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-      <div className="rounded-3xl bg-white/90 p-8 shadow-lg ring-1 ring-emerald-50">
-        <h1 className="text-3xl font-semibold text-slate-900">How Rent & Swap works</h1>
-        <p className="mt-3 text-sm text-slate-600 sm:text-base">
-          The journey mirrors the execution plan: authenticate, discover listings, book or propose
-          a swap, message owners, and leave reviews—all powered by the modular backend we just
-          scaffolded.
-        </p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {phases.map((phase) => (
-            <article key={phase.title} className="rounded-2xl border border-emerald-100 p-6">
-              <h2 className="text-xl font-semibold text-slate-900">{phase.title}</h2>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
-                {phase.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
+    <div className="bg-slate-50">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            How Rent & Swap Works
+          </h1>
+          <p className="mt-4 text-lg text-slate-600">
+            A simple, secure, and community-driven way to rent or swap items.
+          </p>
         </div>
-        <div className="mt-10 rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/40 p-6">
-          <div className="flex flex-wrap items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            <Sparkles className="text-[var(--rs-primary)]" size={18} />
-            Execution timeline
+
+        {/* Renting Section */}
+        <div className="mt-16">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-semibold text-slate-900">How to Rent an Item</h2>
+            <p className="mt-2 text-base text-slate-500">
+              Get access to what you need, right when you need it.
+            </p>
           </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {["Discover", "Book/swap", "Return & review"].map((step, index) => (
-              <div key={step} className="rounded-2xl bg-white/80 p-4 text-center shadow-sm">
-                <p className="text-xs uppercase tracking-wide text-emerald-400">Step {index + 1}</p>
-                <p className="text-base font-semibold text-slate-900">{step}</p>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {rentSteps.map((step) => (
+              <div key={step.title} className="rounded-2xl bg-white p-6 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
+                  {step.icon}
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{step.description}</p>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <article className="rounded-3xl border border-emerald-100 p-6">
-            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              <CheckCircle2 className="text-[var(--rs-primary)]" size={18} />
-              Accountability loop
-            </div>
-            <p className="mt-3 text-sm text-slate-600">
-              Authenticated users list items → renters book or propose swaps → deposit + messaging keep
-              both sides aligned → reviews close the loop. Each module from the Project Overview is mapped to
-              a dedicated service in the backend.
+
+        {/* Swapping Section */}
+        <div className="mt-20">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-semibold text-slate-900">How to Swap an Item</h2>
+            <p className="mt-2 text-base text-slate-500">
+              Trade what you have for what you want.
             </p>
-          </article>
-          <article className="rounded-3xl border border-emerald-100 p-6">
-            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              <Clock className="text-sky-500" size={18} />
-              FAQ
-            </div>
-            <ul className="mt-4 space-y-4 text-sm text-slate-600">
-              {faqs.map((faq) => (
-                <li key={faq.q}>
-                  <p className="font-semibold text-slate-900">{faq.q}</p>
-                  <p>{faq.a}</p>
-                </li>
-              ))}
-            </ul>
-          </article>
+          </div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {swapSteps.map((step) => (
+              <div key={step.title} className="rounded-2xl bg-white p-6 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-50">
+                  {step.icon}
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+
+        {/* FAQ Section */}
+        <div className="mt-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2">
+              <HelpCircle className="text-slate-500" />
+              <h2 className="text-2xl font-semibold text-slate-900">Frequently Asked Questions</h2>
+            </div>
+          </div>
+          <div className="mx-auto mt-10 grid max-w-5xl gap-y-10 gap-x-8 md:grid-cols-2">
+            {faqs.map((faq) => (
+              <div key={faq.q}>
+                <h3 className="text-base font-semibold leading-7 text-slate-900">{faq.q}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
