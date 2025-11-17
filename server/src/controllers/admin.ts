@@ -38,3 +38,27 @@ export const adminOverview = asyncHandler(async (_req, res) => {
     disputes,
   });
 });
+
+export const getAllUsers = asyncHandler(async (_req, res) => {
+  const users = await User.find().select("-password");
+  res.json({ users });
+});
+
+export const getAllListings = asyncHandler(async (_req, res) => {
+  const items = await Item.find().populate("owner", "email");
+  res.json({ items });
+});
+
+export const getAllBookings = asyncHandler(async (_req, res) => {
+  const bookings = await Booking.find().populate("item", "title").populate("renter", "email");
+  res.json({ bookings });
+});
+
+export const getAllSwaps = asyncHandler(async (_req, res) => {
+  const swaps = await Swap.find()
+    .populate("proposer", "email")
+    .populate("receiver", "email")
+    .populate("proposerItem", "title")
+    .populate("receiverItem", "title");
+  res.json({ swaps });
+});

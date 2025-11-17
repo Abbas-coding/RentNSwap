@@ -234,6 +234,10 @@ export const adminApi = {
     "/api/admin/overview",
     { auth: true }
   ),
+  getAllUsers: () => apiRequest<{ users: AuthUser[] }>("/api/admin/users", { auth: true }),
+  getAllListings: () => apiRequest<{ items: Item[] }>("/api/admin/listings", { auth: true }),
+  getAllBookings: () => apiRequest<{ bookings: Booking[] }>("/api/admin/bookings", { auth: true }),
+  getAllSwaps: () => apiRequest<{ swaps: Swap[] }>("/api/admin/swaps", { auth: true }),
 };
 
 export const insightsApi = {
