@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { itemsApi, reviewsApi, bookingsApi, type Item, type Review, type Booking } from "@/lib/api";
+import { itemsApi, reviewsApi, bookingsApi, type Item, type Review, type Booking, conversationsApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE_URL = "http://localhost:4000";
@@ -130,6 +130,38 @@ export default function ItemDetails() {
     }
   };
 
+  const handleMessageOwner = async () => {
+    if (!isAuthenticated || !user || !item) {
+      navigate("/login", { state: { from: { pathname: `/items/${itemId}` } } });
+      return;
+    }
+
+    if (user._id === item.owner?._id) {
+      // Should be disabled by isOwner, but as a safeguard
+      console.warn("Cannot message yourself.");
+      return;
+    }
+
+    try {
+      const subject = `Regarding your listing: ${item.title}`;
+      const initialMessage = `Hi ${item.owner?.email},\n\nI'm interested in your listing "${item.title}".`;
+
+      const res = await conversationsApi.create({
+        participantId: item.owner?._id,
+        subject,
+        initialMessage,
+        context: {
+          kind: "inquiry", // Assuming a new context kind for items
+          ref: item._id,
+        },
+      });
+      navigate(`/inbox?conversationId=${res.conversation._id}`);
+    } catch (error) {
+      console.error("Failed to create or find conversation:", error);
+      // Optionally show an error message to the user
+    }
+  };
+
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -231,22 +263,29 @@ export default function ItemDetails() {
                     >
                       Request Swap
                     </Link>
-                    <button
-                      className={`rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg transition ${
-                        isOwner
-                          ? "cursor-not-allowed bg-slate-50 text-slate-400"
-                          : "bg-[var(--rs-primary)] text-white shadow-emerald-200/60 hover:opacity-90"
-                      }`}
-                      disabled={isOwner}
-                      onClick={openBookingModal}
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                                      <button
+                                        className={`rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg transition ${
+                                          isOwner
+                                            ? "cursor-not-allowed bg-slate-50 text-slate-400"
+                                            : "bg-[var(--rs-primary)] text-white shadow-emerald-200/60 hover:opacity-90"
+                                        }`}
+                                        disabled={isOwner}
+                                        onClick={openBookingModal}
+                                      >
+                                        Book Now
+                                      </button>
+                                      {!isOwner && isAuthenticated && (
+                                        <button
+                                          className="rounded-2xl border border-emerald-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+                                          onClick={handleMessageOwner}
+                                        >
+                                          Message Owner
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>          </div>
           <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Reviews ({stats.count})</h2>

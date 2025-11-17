@@ -140,6 +140,7 @@ export interface ConversationSummary {
 export interface Conversation {
   _id: string;
   subject: string;
+  participants: { _id: string; email?: string }[];
   messages: { sender: { email?: string } | string; text: string; createdAt: string }[];
   updatedAt: string;
 }
@@ -249,12 +250,29 @@ export const insightsApi = {
 };
 
 export const conversationsApi = {
-  list: () => apiRequest<{ conversations: ConversationSummary[] }>("/api/conversations", { auth: true }),
+  list: () => apiRequest<{ conversations: Conversation[] }>("/api/conversations", { auth: true }),
   get: (id: string) => apiRequest<{ conversation: Conversation }>(`/api/conversations/${id}`, { auth: true }),
   sendMessage: (id: string, text: string) =>
     apiRequest<{ conversation: Conversation }>(`/api/conversations/${id}/messages`, {
       method: "POST",
       body: JSON.stringify({ text }),
+      auth: true,
+    }),
+  create: (payload: {
+    participantId: string;
+    subject: string;
+    initialMessage: string;
+    context?: { kind: string; ref?: string };
+  }) =>
+    apiRequest<{ conversation: Conversation }>(`/api/conversations`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      auth: true,
+    }),
+  getUnreadCount: () => apiRequest<{ count: number }>("/api/conversations/unread-count", { auth: true }),
+  markAsRead: (id: string) =>
+    apiRequest<{ message: string }>(`/api/conversations/${id}/read`, {
+      method: "PATCH",
       auth: true,
     }),
 };

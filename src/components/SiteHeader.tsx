@@ -1,8 +1,10 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Search, Leaf, User } from "lucide-react";
+import { Menu, X, Search, Leaf, User, Bell } from "lucide-react";
 import logoUrl from "../assets/logo.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { conversationsApi } from "@/lib/api";
+import { useSocket } from "@/contexts/SocketContext";
 
 const navLinks = [
   { to: "/browse", label: "Rent" },
@@ -15,9 +17,36 @@ export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await conversationsApi.getUnreadCount();
+        setUnreadCount(res.count);
+      } catch (error) {
+        console.error("Failed to fetch unread count:", error);
+      }
+    };
+
+    fetchUnreadCount(); // Initial fetch
+
+    if (socket) {
+      socket.on("unread_count_update", (count: number) => {
+        setUnreadCount(count);
+      });
+
+      return () => {
+        socket.off("unread_count_update");
+      };
+    }
+  }, [isAuthenticated, socket]);
 
   const handleLogout = () => {
     logout();
@@ -97,54 +126,69 @@ export default function SiteHeader() {
         </nav>
 
         {/* Actions */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-4 md:flex">
           {isAuthenticated ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-white text-slate-600 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
-              >
-                <User size={20} />
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-2xl bg-white py-2 shadow-xl ring-1 ring-slate-900/5">
-                  <div className="border-b border-slate-100 px-4 py-2">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      {user?.email}
-                    </p>
-                  </div>
-                  <div className="py-1">
-                    <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    {user?.role === "admin" && (
+            <>
+              <Link to="/inbox" className="relative flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-white text-slate-600 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]">
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute right-0 top-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                )}
+              </Link>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-white text-slate-600 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]"
+                >
+                  <User size={20} />
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-2xl bg-white py-2 shadow-xl ring-1 ring-slate-900/5">
+                    <div className="border-b border-slate-100 px-4 py-2">
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                    <div className="py-1">
                       <Link
-                        to="/admin"
+                        to="/dashboard"
                         className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        Admin Panel
+                        Dashboard
                       </Link>
-                    )}
+                      <Link
+                        to="/inbox"
+                        className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        Inbox
+                      </Link>
+                      {user?.role === "admin" && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
+                    </div>
+                    <div className="border-t border-slate-100 py-1">
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setDropdownOpen(false);
+                        }}
+                        className="block w-full px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
+                        Log out
+                      </button>
+                    </div>
                   </div>
-                  <div className="border-t border-slate-100 py-1">
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setDropdownOpen(false);
-                      }}
-                      className="block w-full px-4 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Log out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </>
           ) : (
             <>
               <Link

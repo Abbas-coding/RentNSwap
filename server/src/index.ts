@@ -1,61 +1,67 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { connectDB } from "./config/db";
+import cors from "cors";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import {connectDB} from "./config/db";
+import { errorHandler, notFound } from "./middleware/error";
 import authRoutes from "./routes/auth";
 import itemRoutes from "./routes/items";
 import bookingRoutes from "./routes/bookings";
 import swapRoutes from "./routes/swaps";
-import conversationRoutes from "./routes/conversations";
-import insightsRoutes from "./routes/insights";
 import reviewRoutes from "./routes/reviews";
 import adminRoutes from "./routes/admin";
-import disputeRoutes from "./routes/disputes";
-import { errorHandler, notFound } from "./middleware/error";
+import insightsRoutes from "./routes/insights";
+import conversationRoutes from "./routes/conversations";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config();
+connectDB();
 
 const app = express();
-const port = process.env.PORT || 4000;
-const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-
-app.use(
-  cors({
-    origin: clientOrigin,
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Serve uploaded files
 app.use("/uploads", express.static("uploads"));
 
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/swaps", swapRoutes);
-app.use("/api/conversations", conversationRoutes);
-app.use("/api/insights", insightsRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/disputes", disputeRoutes);
+app.use("/api/insights", insightsRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
-connectDB()
-  .then(() => {
-    app.listen(port, () => {
-      console.log(`🚀 API ready on http://localhost:${port}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to start server", error);
-    process.exit(1);
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("a user connected:", socket.id);
+
+  socket.on("join", (userId) => {
+    console.log(`User ${userId} joined room`);
+    socket.join(userId);
   });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
+const PORT = process.env.PORT || 4000;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+export { io };
