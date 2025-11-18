@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
@@ -10,7 +11,10 @@ import Conversation from "../models/Conversation";
 import Review from "../models/Review";
 import Dispute from "../models/Dispute";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(process.cwd(), "server", ".env") });
+
+const seedAssetsDir = path.join(__dirname, "seed-assets");
+const uploadsDir = path.join(__dirname, "..", "..", "uploads");
 
 async function seed() {
   const uri = process.env.MONGO_URI;
@@ -30,13 +34,30 @@ async function seed() {
     Review.deleteMany({}),
     Dispute.deleteMany({}),
   ]);
+  
+  // Clear and prepare uploads directory
+  if (fs.existsSync(uploadsDir)) {
+    fs.rmSync(uploadsDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(uploadsDir, { recursive: true });
 
   const passwordHash = await bcrypt.hash("password123", 10);
   const [ownerOne, ownerTwo, renterOne] = await User.create([
-    { email: "owner1@rentnswap.com", passwordHash, role: "admin" },
-    { email: "owner2@rentnswap.com", passwordHash },
-    { email: "renter1@rentnswap.com", passwordHash },
+    { email: "owner1@rentnswap.com", password: passwordHash, role: "admin" },
+    { email: "owner2@rentnswap.com", password: passwordHash },
+    { email: "renter1@rentnswap.com", password: passwordHash },
   ]);
+
+  const seedImages = fs.readdirSync(seedAssetsDir);
+  const copyRandomImage = () => {
+    if (seedImages.length === 0) return null;
+    const randomImage = seedImages[Math.floor(Math.random() * seedImages.length)];
+    const sourcePath = path.join(seedAssetsDir, randomImage);
+    const destFileName = `${Date.now()}-${randomImage}`;
+    const destPath = path.join(uploadsDir, destFileName);
+    fs.copyFileSync(sourcePath, destPath);
+    return `uploads/${destFileName}`;
+  };
 
   const items = await Item.create([
     {
@@ -51,6 +72,7 @@ async function seed() {
       swapEligible: true,
       availability: ["Weekdays", "Weekends"],
       tags: ["featured"],
+      images: [copyRandomImage()].filter(Boolean),
     },
     {
       owner: ownerOne._id,
@@ -64,6 +86,7 @@ async function seed() {
       swapEligible: false,
       availability: ["Weekends"],
       tags: ["featured"],
+      images: [copyRandomImage()].filter(Boolean),
     },
     {
       owner: ownerTwo._id,
@@ -76,6 +99,7 @@ async function seed() {
       rating: 4.8,
       swapEligible: true,
       availability: ["Flexible"],
+      images: [copyRandomImage()].filter(Boolean),
     },
     {
       owner: ownerTwo._id,
@@ -89,6 +113,7 @@ async function seed() {
       swapEligible: false,
       availability: ["Weekends"],
       tags: ["featured"],
+      images: [copyRandomImage()].filter(Boolean),
     },
   ]);
 
@@ -149,8 +174,8 @@ async function seed() {
       participants: [ownerOne._id, renterOne._id],
       context: { kind: "booking", ref: items[0]._id },
       messages: [
-        { sender: renterOne._id, text: "Hi! Can I pick up tomorrow morning?", createdAt: new Date() },
-        { sender: ownerOne._id, text: "Yes, 10am works! Need extra batteries?", createdAt: new Date() },
+        { sender: renterOne._id, text: "Hi! Can I pick up tomorrow morning?", createdAt: new Date(), readBy: [] },
+        { sender: ownerOne._id, text: "Yes, 10am works! Need extra batteries?", createdAt: new Date(), readBy: [] },
       ],
     },
     {
@@ -158,7 +183,7 @@ async function seed() {
       participants: [ownerTwo._id, renterOne._id],
       context: { kind: "swap", ref: items[2]._id },
       messages: [
-        { sender: ownerTwo._id, text: "Interested in trading for your gown?", createdAt: new Date() },
+        { sender: ownerTwo._id, text: "Interested in trading for your gown?", createdAt: new Date(), readBy: [] },
       ],
     },
   ]);
