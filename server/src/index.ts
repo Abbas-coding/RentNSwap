@@ -18,7 +18,15 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",                // Keeps your local dev working
+    "https://rent-n-swap.vercel.app"          // Your new production frontend
+  ],
+  credentials: true,                        // Important if you use cookies/sessions
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+}
+));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
