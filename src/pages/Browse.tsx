@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { SlidersHorizontal, MapPin, Star, Clock4, Filter, Search } from "lucide-react";
+import { SlidersHorizontal, Filter, Search } from "lucide-react";
 import { bookingsApi, itemsApi, type Item } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ItemCard } from "@/components/ItemCard";
@@ -225,7 +225,7 @@ export default function Browse() {
                 <ItemCard
                   key={listing._id}
                   item={listing}
-                  currentUserId={user?.id}
+                  currentUserId={user?._id}
                   onBookClick={openBookingModal}
                   onSwapClick={handleSwapClick}
                 />

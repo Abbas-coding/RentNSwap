@@ -21,7 +21,7 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   if (options.auth) {
     const token = authStorage.getToken();
     if (token) {
-      headers.Authorization = `Bearer ${token}`;
+      (headers as Record<string, string>).Authorization = `Bearer ${token}`;
     }
   }
 
@@ -49,7 +49,7 @@ async function apiUploadRequest<T>(path: string, options: RequestOptions = {}): 
   if (options.auth) {
     const token = authStorage.getToken();
     if (token) {
-      headers.Authorization = `Bearer ${token}`;
+      (headers as Record<string, string>).Authorization = `Bearer ${token}`;
     }
   }
 
@@ -70,7 +70,7 @@ async function apiUploadRequest<T>(path: string, options: RequestOptions = {}): 
 }
 
 export interface AuthUser {
-  id: string;
+  _id: string;
   email?: string;
   phone?: string;
   role?: "user" | "admin";
@@ -106,7 +106,7 @@ export interface Booking {
   endDate: string;
   status: string;
   deposit: number;
-  createdAt?: string;
+  createdAt: string;
 }
 
 export interface Swap {
@@ -130,18 +130,20 @@ export interface Review {
   createdAt: string;
 }
 
-export interface ConversationSummary {
+export interface Message {
   _id: string;
-  subject: string;
-  lastMessage?: { text: string; createdAt: string };
-  updatedAt: string;
+  sender: { _id: string; email?: string };
+  text: string;
+  createdAt: string;
+  readBy: string[];
 }
 
 export interface Conversation {
   _id: string;
   subject: string;
   participants: { _id: string; email?: string }[];
-  messages: { sender: { email?: string } | string; text: string; createdAt: string }[];
+  messages: Message[];
+  lastMessage?: Message;
   updatedAt: string;
 }
 
@@ -249,7 +251,7 @@ export const insightsApi = {
   community: () =>
     apiRequest<{
       stats: { sharedItems: number; locations: number; avgRating: number };
-      testimonials: { quote: string; author: string }[];
+      testimonials: { quote: string; author: string; location: string }[];
     }>("/api/insights/community"),
 };
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { bookingsApi, type Booking } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { ArrowRight, Leaf } from "lucide-react";
 
@@ -76,7 +75,6 @@ function BookingCard({
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<BookingTab>("myRentals");
   const [myRentals, setMyRentals] = useState<Booking[]>([]);
   const [myListingsBookings, setMyListingsBookings] = useState<Booking[]>([]);

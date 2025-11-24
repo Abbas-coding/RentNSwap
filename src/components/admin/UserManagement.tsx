@@ -45,7 +45,7 @@ export default function UserManagement() {
         </thead>
         <tbody className="divide-y divide-slate-200 bg-white">
           {users.map((user) => (
-            <tr key={user.id}>
+            <tr key={user._id}>
               <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">{user.email}</td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">{user.role}</td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">

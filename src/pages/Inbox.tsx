@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { conversationsApi, type Conversation, type Message } from "@/lib/api";
+import { conversationsApi, type Conversation } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { Send } from "lucide-react";
@@ -22,7 +22,7 @@ export default function Inbox() {
 
   const { user } = useAuth();
   const { socket } = useSocket();
-  const currentUserId = user?.id;
+  const currentUserId = user?._id;
 
   const fetchConversations = async () => {
     if (!currentUserId) return;

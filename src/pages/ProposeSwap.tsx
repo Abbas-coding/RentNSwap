@@ -70,7 +70,7 @@ function SwapDisplayCard({ item, type }: { item: Item | null; type: "offer" | "r
 export default function ProposeSwap() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [receiverItem] = useState<Item | null>(location.state?.item);
   const [ownedItems, setOwnedItems] = useState<Item[]>([]);

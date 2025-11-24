@@ -10,13 +10,15 @@ const highlights = [
   { title: "Sustainable wins", body: "Keep products in motion and lighten your footprint." },
 ];
 
-const openBookingModal = (item: Item) => {
-    console.log("");
-  };
+const openBookingModal = () => {
+  // Logic to open booking modal
+  console.log("Booking modal triggered for item:");
+};
 
-  const openSwapModal = (item: Item)=>{
-    console.log("");
-  }
+const openSwapModal = () => {
+  // Logic to open swap modal
+  console.log("Swap modal triggered for item:");
+};
 
 export default function Home() {
   const [stats, setStats] = useState([

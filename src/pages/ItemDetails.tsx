@@ -24,7 +24,7 @@ export default function ItemDetails() {
   const { isAuthenticated, user } = useAuth();
 
   const isOwner = useMemo(() => {
-    return isAuthenticated && user?.id === item?.owner?._id;
+    return isAuthenticated && user?._id === item?.owner?._id;
   }, [isAuthenticated, user, item]);
 
   const isBookingFormValid = useMemo(() => {
@@ -131,12 +131,12 @@ export default function ItemDetails() {
   };
 
   const handleMessageOwner = async () => {
-    if (!isAuthenticated || !user || !item) {
+    if (!isAuthenticated || !user || !item || !item.owner?._id) {
       navigate("/login", { state: { from: { pathname: `/items/${itemId}` } } });
       return;
     }
 
-    if (user._id === item.owner?._id) {
+    if (user._id === item.owner._id) {
       // Should be disabled by isOwner, but as a safeguard
       console.warn("Cannot message yourself.");
       return;
@@ -147,7 +147,7 @@ export default function ItemDetails() {
       const initialMessage = `Hi ${item.owner?.email},\n\nI'm interested in your listing "${item.title}".`;
 
       const res = await conversationsApi.create({
-        participantId: item.owner?._id,
+        participantId: item.owner._id,
         subject,
         initialMessage,
         context: {

@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       newSocket.on("connect", () => {
         console.log("Socket connected:", newSocket.id);
-        newSocket.emit("join", user.id);
+        newSocket.emit("join", user._id);
       });
 
       return () => {
