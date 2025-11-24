@@ -5,7 +5,7 @@ type Overview = {
   stats: Record<string, number>;
   latestBookings: Booking[];
   topCategories: { _id: string; total: number }[];
-  disputes: Array<{
+  disputes?: Array<{
     _id: string;
     status: string;
     description: string;
@@ -85,7 +85,7 @@ export default function AdminOverview() {
           Disputes
         </p>
         <div className="mt-4 space-y-3 text-sm text-slate-600">
-          {data.disputes.map((dispute) => (
+          {data.disputes && data.disputes.map((dispute) => (
             <article key={dispute._id} className="rounded-2xl border border-emerald-50 p-4">
               <p className="text-sm font-semibold text-slate-900">{dispute.description}</p>
               <p className="text-xs text-emerald-500">{dispute.status}</p>
@@ -94,7 +94,7 @@ export default function AdminOverview() {
               </p>
             </article>
           ))}
-          {!data.disputes.length && (
+          {data.disputes && !data.disputes.length && (
             <p className="text-sm text-slate-500">No disputes logged yet.</p>
           )}
         </div>
