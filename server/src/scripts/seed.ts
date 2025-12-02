@@ -43,9 +43,9 @@ async function seed() {
 
   const passwordHash = await bcrypt.hash("password123", 10);
   const [ownerOne, ownerTwo, renterOne] = await User.create([
-    { email: "owner1@rentnswap.com", password: passwordHash, role: "admin" },
-    { email: "owner2@rentnswap.com", password: passwordHash },
-    { email: "renter1@rentnswap.com", password: passwordHash },
+    { email: "owner1@rentnswap.com", passwordHash, role: "admin", firstName: "Alice", lastName: "Admin" },
+    { email: "owner2@rentnswap.com", passwordHash, firstName: "Bob", lastName: "Builder" },
+    { email: "renter1@rentnswap.com", passwordHash, firstName: "Charlie", lastName: "Camera" },
   ]);
 
   const seedImages = fs.readdirSync(seedAssetsDir);

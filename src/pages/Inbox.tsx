@@ -3,6 +3,7 @@ import { conversationsApi, type Conversation } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { Send } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 // Helper to get the other participant's email
 const getOtherParticipant = (conversation: Conversation, currentUserId: string) => {
@@ -19,18 +20,33 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [searchParams] = useSearchParams();
+  const conversationIdParam = searchParams.get("conversationId");
 
   const { user } = useAuth();
   const { socket } = useSocket();
-  const currentUserId = user?._id;
+  // @ts-ignore - handling potential runtime mismatch between id and _id
+  const currentUserId = user?._id || user?.id;
 
   const fetchConversations = async () => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await conversationsApi.list();
       setConversations(res.conversations);
-      if (!selectedConversation && res.conversations.length > 0) {
+      
+      if (conversationIdParam) {
+        const targetConversation = res.conversations.find(c => c._id === conversationIdParam);
+        if (targetConversation) {
+          setSelectedConversation(targetConversation);
+        } else {
+          // If not in the list, try fetching it directly to handle race conditions
+          fetchConversationDetails(conversationIdParam);
+        }
+      } else if (!selectedConversation && res.conversations.length > 0) {
         setSelectedConversation(res.conversations[0]);
       }
     } catch (error) {

@@ -43,6 +43,11 @@ export const createBooking = asyncHandler(async (req: AuthenticatedRequest, res:
     throw new Error("Item not found");
   }
 
+  if (item.owner.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You cannot book your own item.");
+  }
+
   const booking = await Booking.create({
     item: item._id,
     owner: item.owner,

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, Filter, Search } from "lucide-react";
 import { bookingsApi, itemsApi, type Item } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,13 +16,16 @@ const chips = [
 ];
 
 export default function Browse() {
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  
   const [activeChip, setActiveChip] = useState(chips[0].label);
   const [filters, setFilters] = useState({
     location: "",
     minPrice: "",
     maxPrice: "",
   });
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const [items, setItems] = useState<Item[]>([]);
@@ -33,6 +36,11 @@ export default function Browse() {
 
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const query = searchParams.get("q") || "";
+    setSearchTerm(query);
+  }, [searchParams]);
 
   const isBookingFormValid = useMemo(() => {
     const { startDate, endDate } = bookingForm;

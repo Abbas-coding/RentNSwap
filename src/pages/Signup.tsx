@@ -1,150 +1,161 @@
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import AuthLayout from "../layouts/AuthLayout";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { PasswordInput } from "@/components/ui/PasswordInput";
-import { authApi, ApiError } from "@/lib/api";
-
-const SignupSchema = z
-  .object({
-    identifier: z
-      .string()
-      .min(3, "Enter your email or phone")
-      .max(70, "Too long"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirm: z.string().min(6),
-  })
-  .refine((d) => d.password === d.confirm, {
-    path: ["confirm"],
-    message: "Passwords don't match",
-  });
-
-type SignupForm = z.infer<typeof SignupSchema>;
-
-const inputStyles =
-  "h-12 rounded-2xl border-emerald-100/80 bg-white text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-[var(--rs-primary)] focus:ring-[#38BDF8]/50";
-const passwordWrapperStyles =
-  "[&>input]:h-12 [&>input]:rounded-2xl [&>input]:border-emerald-100/80 [&>input]:bg-white [&>input]:text-base [&>input]:text-slate-900 [&>input]:placeholder:text-slate-400 [&>input]:shadow-sm [&>input]:focus:border-[var(--rs-primary)] [&>input]:focus:ring-[#38BDF8]/50 [&>button]:text-slate-400 [&>button]:hover:text-slate-700";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { authApi } from "@/lib/api";
+import { ArrowRight, Loader2 } from "lucide-react";
+import logoUrl from "../assets/logo.png";
 
 export default function Signup() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignupForm>({ resolver: zodResolver(SignupSchema) });
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { setSession } = useAuth();
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
 
-  const onSubmit = async (data: SignupForm) => {
-    setServerError(null);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+    setIsLoading(true);
+
     try {
-      const response = await authApi.signup({
-        identifier: data.identifier,
-        password: data.password,
-      });
-      if (response.token) {
-        // Token will be used once auto-login or email verification is in place.
-      }
-      navigate("/login", { state: { accountCreated: true } });
-    } catch (error) {
-      const message =
-        error instanceof ApiError ? error.message : "Unable to create your account.";
-      setServerError(message);
+      const { token, user } = await authApi.signup({ email, password, firstName, lastName });
+      setSession(token, user);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Create your account"
-      subtitle="List what you own. Borrow what you need."
-      switchLink={{
-        helper: "Already part of the community?",
-        label: "Log in",
-        to: "/login",
-      }}
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label
-            htmlFor="identifier"
-            className="text-sm font-semibold text-slate-600"
-          >
-            Email or Phone
-          </Label>
-          <Input
-            id="identifier"
-            type="text"
-            autoComplete="username"
-            placeholder="you@example.com / 03xx-xxxxxxx"
-            className={inputStyles}
-            aria-invalid={!!errors.identifier}
-            {...register("identifier")}
-          />
-          {errors.identifier && (
-            <p className="text-sm text-red-500">{errors.identifier.message}</p>
-          )}
+    <div className="flex min-h-screen w-full">
+      {/* Left: Form Side (Swapped from Login for variety) */}
+      <div className="flex w-full flex-col justify-center bg-white px-4 py-12 lg:w-1/2 lg:px-12">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-10">
+            <Link to="/" className="mb-8 flex items-center gap-2">
+              <img src={logoUrl} alt="Rent & Swap" className="h-10 w-10" />
+              <span className="text-lg font-bold text-slate-900">Rent & Swap</span>
+            </Link>
+            <h1 className="text-3xl font-bold text-slate-900">Create an account</h1>
+            <p className="mt-2 text-slate-600">
+              Start sharing and discovering items today.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700">
+                  First name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  required
+                  className="mt-1 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm shadow-sm focus:border-[var(--rs-primary)] focus:ring-1 focus:ring-[var(--rs-primary)]"
+                  placeholder="Jane"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700">
+                  Last name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  required
+                  className="mt-1 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm shadow-sm focus:border-[var(--rs-primary)] focus:ring-1 focus:ring-[var(--rs-primary)]"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                className="mt-1 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm shadow-sm focus:border-[var(--rs-primary)] focus:ring-1 focus:ring-[var(--rs-primary)]"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                className="mt-1 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm shadow-sm focus:border-[var(--rs-primary)] focus:ring-1 focus:ring-[var(--rs-primary)]"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-slate-500">Must be at least 8 characters</p>
+            </div>
+
+            {error && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--rs-primary)] py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-[#0ea5e9] disabled:opacity-70"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                <>
+                  Get started <ArrowRight size={18} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link to="/login" className="font-bold text-[var(--rs-primary)] hover:underline">
+              Log in
+            </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-2">
-          <Label
-            htmlFor="password"
-            className="text-sm font-semibold text-slate-600"
-          >
-            Password
-          </Label>
-          <PasswordInput
-            id="password"
-            autoComplete="new-password"
-            placeholder="Create a strong password"
-            className={passwordWrapperStyles}
-            aria-invalid={!!errors.password}
-            {...register("password")}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
+      {/* Right: Image Side */}
+      <div className="hidden w-1/2 bg-slate-900 lg:block relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tl from-emerald-900/40 to-slate-900/60 z-10" />
+        <img 
+          src="https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=2070&auto=format&fit=crop" 
+          alt="Celebration" 
+          className="h-full w-full object-cover opacity-80"
+        />
+        <div className="absolute bottom-0 right-0 z-20 p-12 text-right text-white">
+          <h2 className="text-4xl font-bold leading-tight">Your next adventure<br/>starts here.</h2>
+          <p className="mt-4 text-lg text-slate-200 max-w-md ml-auto">
+            Find the perfect gear for your weekend trip, DIY project, or special event.
+          </p>
         </div>
-
-        <div className="space-y-2">
-          <Label
-            htmlFor="confirm"
-            className="text-sm font-semibold text-slate-600"
-          >
-            Confirm Password
-          </Label>
-          <PasswordInput
-            id="confirm"
-            autoComplete="new-password"
-            placeholder="Repeat password"
-            className={passwordWrapperStyles}
-            aria-invalid={!!errors.confirm}
-            {...register("confirm")}
-          />
-          {errors.confirm && (
-            <p className="text-sm text-red-500">{errors.confirm.message}</p>
-          )}
-        </div>
-
-        {serverError && (
-          <p className="text-sm text-center text-red-500">{serverError}</p>
-        )}
-
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="h-12 w-full rounded-2xl bg-[var(--rs-primary)] text-base font-semibold text-white shadow-lg shadow-emerald-200/60 transition hover:bg-[var(--rs-primary-dark)] focus-visible:ring-[#38BDF8]/60 disabled:opacity-60"
-        >
-          {isSubmitting ? "Creating account…" : "Create account"}
-        </Button>
-        <p className="text-center text-xs text-slate-400">
-          By joining, you agree to respectful swaps and responsible returns.
-        </p>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 }

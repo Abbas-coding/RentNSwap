@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin } from "lucide-react";
-import { type Item, API_BASE_URL } from "@/lib/api";
+import { type Item } from "@/lib/api";
+import { getImageUrl } from "@/lib/utils";
 
 interface ItemCardProps {
   item: Item;
@@ -10,10 +11,7 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, currentUserId, onBookClick, onSwapClick }: ItemCardProps) {
-  const imageUrl =
-    item.images && item.images.length > 0
-      ? `${API_BASE_URL}/${item.images[0]}`
-      : "/placeholder.svg"; // A fallback image
+  const imageUrl = getImageUrl(item.images?.[0]);
 
   const isOwner = currentUserId === item.owner?._id;
 
@@ -52,29 +50,23 @@ export function ItemCard({ item, currentUserId, onBookClick, onSwapClick }: Item
           >
             View details
           </Link>
-          <button
-            className={`flex-1 rounded-2xl px-3 py-2 text-xs font-semibold transition ${
-              isOwner
-                ? "cursor-not-allowed bg-slate-50 text-slate-400"
-                : "border border-emerald-100 text-[var(--rs-primary)] hover:border-[var(--rs-primary)]"
-            }`}
-            onClick={() => onBookClick(item)}
-            disabled={isOwner}
-          >
-            Book item
-          </button>
-          {item.swapEligible && (
-            <button
-              className={`flex-1 rounded-2xl px-3 py-2 text-xs font-semibold transition ${
-                isOwner
-                  ? "cursor-not-allowed bg-slate-50 text-slate-400"
-                  : "border border-emerald-100 text-slate-600 hover:border-[var(--rs-primary)]"
-              }`}
-              disabled={isOwner}
-              onClick={() => onSwapClick(item)}
-            >
-              Swap
-            </button>
+          {!isOwner && (
+            <>
+              <button
+                className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-[var(--rs-primary)] transition hover:border-[var(--rs-primary)]"
+                onClick={() => onBookClick(item)}
+              >
+                Book item
+              </button>
+              {item.swapEligible && (
+                <button
+                  className="flex-1 rounded-2xl border border-emerald-100 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[var(--rs-primary)]"
+                  onClick={() => onSwapClick(item)}
+                >
+                  Swap
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

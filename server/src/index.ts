@@ -1,5 +1,5 @@
+import "dotenv/config"; // Load env vars before anything else
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -14,7 +14,7 @@ import adminRoutes from "./routes/admin";
 import insightsRoutes from "./routes/insights";
 import conversationRoutes from "./routes/conversations";
 
-dotenv.config();
+// dotenv.config(); // Removed as we are using the side-effect import
 connectDB();
 
 const app = express();

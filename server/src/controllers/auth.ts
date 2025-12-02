@@ -18,29 +18,25 @@ const buildToken = (userId: string) => {
   return jwt.sign({ sub: userId }, secret, { expiresIn: "7d" });
 };
 
-const formatUser = (user: IUser) => ({
-  id: user.id,
+const formatUser = (user: IUser & { _id: any }) => ({
+  id: String(user._id),
   email: user.email,
-  phone: user.phone,
+  firstName: user.firstName,
+  lastName: user.lastName,
   role: user.role,
   createdAt: user.createdAt,
 });
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
-  const { identifier, password } = req.body as { identifier?: string; password?: string };
+  const { email, password, firstName, lastName } = req.body;
 
-  if (!identifier || !password) {
+  if (!email || !password || !firstName || !lastName) {
     res.status(400);
-    throw new Error("Identifier and password are required");
+    throw new Error("All fields (email, password, firstName, lastName) are required");
   }
 
-  const identifierIsEmail = isEmail(identifier);
-  const normalizedValue = identifierIsEmail
-    ? normalizeIdentifier(identifier)
-    : normalizePhone(identifier);
-
-  const query = identifierIsEmail ? { email: normalizedValue } : { phone: normalizedValue };
-  const existingUser = await User.findOne(query);
+  const normalizedEmail = normalizeIdentifier(email);
+  const existingUser = await User.findOne({ email: normalizedEmail });
   if (existingUser) {
     res.status(409);
     throw new Error("Account already exists. Try logging in instead.");
@@ -48,30 +44,26 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({
-    email: identifierIsEmail ? normalizedValue : undefined,
-    phone: identifierIsEmail ? undefined : normalizedValue,
+    email: normalizedEmail,
+    firstName,
+    lastName,
     passwordHash,
   });
 
   const token = buildToken(user.id);
-  res.status(201).json({ token, user: formatUser(user) });
+  res.status(201).json({ token, user: formatUser(user as any) });
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { identifier, password } = req.body as { identifier?: string; password?: string };
+  const { email, password } = req.body;
 
-  if (!identifier || !password) {
+  if (!email || !password) {
     res.status(400);
-    throw new Error("Identifier and password are required");
+    throw new Error("Email and password are required");
   }
 
-  const identifierIsEmail = isEmail(identifier);
-  const normalizedValue = identifierIsEmail
-    ? normalizeIdentifier(identifier)
-    : normalizePhone(identifier);
-
-  const query = identifierIsEmail ? { email: normalizedValue } : { phone: normalizedValue };
-  const user = await User.findOne(query);
+  const normalizedEmail = normalizeIdentifier(email);
+  const user = await User.findOne({ email: normalizedEmail });
 
   if (!user) {
     res.status(401);
@@ -85,7 +77,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const token = buildToken(user.id);
-  res.json({ token, user: formatUser(user) });
+  res.json({ token, user: formatUser(user as any) });
 });
 
 export const me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {

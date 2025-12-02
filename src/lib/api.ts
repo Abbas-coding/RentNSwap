@@ -72,6 +72,8 @@ async function apiUploadRequest<T>(path: string, options: RequestOptions = {}): 
 export interface AuthUser {
   _id: string;
   email?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   role?: "user" | "admin";
   createdAt: string;
@@ -148,12 +150,12 @@ export interface Conversation {
 }
 
 export const authApi = {
-  login: (payload: { identifier: string; password: string }) =>
+  login: (payload: { email: string; password: string }) =>
     apiRequest<AuthResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  signup: (payload: { identifier: string; password: string }) =>
+  signup: (payload: { email: string; password: string; firstName: string; lastName: string }) =>
     apiRequest<AuthResponse>("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify(payload),

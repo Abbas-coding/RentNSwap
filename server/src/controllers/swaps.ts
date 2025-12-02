@@ -48,6 +48,11 @@ export const createSwap = asyncHandler(async (req: AuthenticatedRequest, res: Re
     throw new Error("You can only propose swaps with items you own.");
   }
 
+  if (String(receiverItem.owner) === String(req.user._id)) {
+    res.status(400);
+    throw new Error("You cannot swap with yourself.");
+  }
+
   const swap = await Swap.create({
     proposer: req.user._id,
     proposerItem: proposerItem._id,
