@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { bookingsApi, itemsApi, type Booking } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { ArrowRight, Leaf, Package, Calendar, Clock } from "lucide-react";
+import { Leaf, Package, Calendar} from "lucide-react";
 
 type BookingTab = "myRentals" | "myListingsBookings";
 

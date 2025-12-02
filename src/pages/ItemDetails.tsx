@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { itemsApi, reviewsApi, bookingsApi, type Item, type Review, type Booking, conversationsApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getImageUrl } from "@/lib/utils";
-import { MapPin, Star, User, ShieldCheck, Calendar as CalendarIcon, MessageSquare, ArrowRightLeft } from "lucide-react";
+import { MapPin, Star, User, ShieldCheck, MessageSquare, ArrowRightLeft } from "lucide-react";
 
 export default function ItemDetails() {
   const { itemId } = useParams<{ itemId: string }>();

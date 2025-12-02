@@ -3,7 +3,7 @@ import { swapsApi, type Swap } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { SwapOfferCard } from "@/components/SwapOfferCard";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowRightLeft, Inbox } from "lucide-react";
+import { ArrowRightLeft, Inbox } from "lucide-react";
 
 type SwapTab = "incoming" | "outgoing";
 
@@ -37,8 +37,8 @@ export default function SwapHub() {
   }, [isAuthenticated]);
 
   const { incomingSwaps, outgoingSwaps } = useMemo(() => {
-    const incoming = swaps.filter((s) => s.receiver?._id === user?.id || s.receiver?._id === user?._id);
-    const outgoing = swaps.filter((s) => s.proposer?._id === user?.id || s.proposer?._id === user?._id);
+    const incoming = swaps.filter((s) => s.receiver?._id === user?._id || s.receiver?._id === user?._id);
+    const outgoing = swaps.filter((s) => s.proposer?._id === user?._id || s.proposer?._id === user?._id);
     return { incomingSwaps: incoming, outgoingSwaps: outgoing };
   }, [swaps, user]);
 
@@ -116,7 +116,7 @@ export default function SwapHub() {
                     <SwapOfferCard
                         key={swap._id}
                         swap={swap}
-                        currentUserId={user?.id || user?._id || ""}
+                        currentUserId={user?._id || user?._id || ""}
                         onAction={handleSwapAction}
                     />
                 ))}
