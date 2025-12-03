@@ -16,7 +16,7 @@ function SwapItem({ item }: { item: Swap["proposerItem"] }) {
   if (!item) return null;
   const imageUrl =
     item.images && item.images.length > 0
-      ? `${API_BASE_URL}/${item.images[0]}`
+      ? `${item.images[0]}`
       : "/placeholder.svg";
 
   return (
