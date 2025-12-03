@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightLeft, Coins } from "lucide-react";
-import { type Swap, API_BASE_URL } from "@/lib/api";
+import { type Swap} from "@/lib/api";
 
 interface SwapOfferCardProps {
   swap: Swap;
