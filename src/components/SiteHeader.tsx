@@ -129,6 +129,13 @@ export default function SiteHeader() {
         <div className="hidden items-center gap-4 md:flex">
           {isAuthenticated ? (
             <>
+              <Link
+                to="/list"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+              >
+                <Leaf size={16} />
+                List Item
+              </Link>
               <Link to="/inbox" className="relative flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-white text-slate-600 transition hover:border-[var(--rs-primary)] hover:text-[var(--rs-primary)]">
                 <Bell size={20} />
                 {unreadCount > 0 && (

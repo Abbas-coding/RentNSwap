@@ -37,8 +37,11 @@ export default function SwapHub() {
   }, [isAuthenticated]);
 
   const { incomingSwaps, outgoingSwaps } = useMemo(() => {
-    const incoming = swaps.filter((s) => s.receiver?._id === user?._id || s.receiver?._id === user?._id);
-    const outgoing = swaps.filter((s) => s.proposer?._id === user?._id || s.proposer?._id === user?._id);
+    if (!user?._id) return { incomingSwaps: [], outgoingSwaps: [] };
+    
+    const incoming = swaps.filter((s) => s.receiver?._id === user._id);
+    const outgoing = swaps.filter((s) => s.proposer?._id === user._id);
+    
     return { incomingSwaps: incoming, outgoingSwaps: outgoing };
   }, [swaps, user]);
 
@@ -116,7 +119,7 @@ export default function SwapHub() {
                     <SwapOfferCard
                         key={swap._id}
                         swap={swap}
-                        currentUserId={user?._id || user?._id || ""}
+                        currentUserId={user?._id || ""}
                         onAction={handleSwapAction}
                     />
                 ))}

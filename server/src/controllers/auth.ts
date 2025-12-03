@@ -19,7 +19,7 @@ const buildToken = (userId: string) => {
 };
 
 const formatUser = (user: IUser & { _id: any }) => ({
-  id: String(user._id),
+  _id: String(user._id),
   email: user.email,
   firstName: user.firstName,
   lastName: user.lastName,

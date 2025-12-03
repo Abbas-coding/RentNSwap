@@ -22,6 +22,7 @@ const reviewSchema = new Schema<IReview>(
   { timestamps: true }
 );
 
-reviewSchema.index({ item: 1, fromUser: 1 }, { unique: true });
+// Ensure one review per booking
+reviewSchema.index({ booking: 1 }, { unique: true });
 
 export default model<IReview>("Review", reviewSchema);
