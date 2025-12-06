@@ -46,7 +46,7 @@ export const createItem = asyncHandler(async (req: AuthenticatedRequest, res: Re
     throw new Error("Not authenticated");
   }
 
-  const {
+  let {
     title,
     category,
     description,
@@ -60,6 +60,19 @@ export const createItem = asyncHandler(async (req: AuthenticatedRequest, res: Re
   if (!title || !category || !description || !pricePerDay || !location) {
     res.status(400);
     throw new Error("Missing required fields");
+  }
+
+  pricePerDay = Number(pricePerDay);
+  deposit = Number(deposit);
+
+  if (isNaN(pricePerDay) || pricePerDay <= 0 || pricePerDay > 1000000) {
+    res.status(400);
+    throw new Error("Invalid price per day");
+  }
+
+  if (isNaN(deposit) || deposit < 0 || deposit > 1000000) {
+    res.status(400);
+    throw new Error("Invalid deposit amount");
   }
 
   const images = (req.files as Express.Multer.File[])?.map((file) => file.path) ?? [];
