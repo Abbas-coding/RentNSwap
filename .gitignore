@@ -25,4 +25,4 @@ AGENTS.md
 *.sw?
 
 uploads/
-.env
+**/.env
