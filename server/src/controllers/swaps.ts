@@ -36,6 +36,11 @@ export const createSwap = asyncHandler(async (req: AuthenticatedRequest, res: Re
     throw new Error("Missing required fields");
   }
 
+  if (typeof cashAdjustment !== "number" || !isFinite(cashAdjustment) || Math.abs(cashAdjustment) > 1000000) {
+    res.status(400);
+    throw new Error("Invalid cash adjustment amount");
+  }
+
   const proposerItem = await Item.findById(proposerItemId);
   const receiverItem = await Item.findById(receiverItemId);
   if (!proposerItem || !receiverItem) {
@@ -46,6 +51,24 @@ export const createSwap = asyncHandler(async (req: AuthenticatedRequest, res: Re
   if (String(proposerItem.owner) !== String(req.user._id)) {
     res.status(403);
     throw new Error("You can only propose swaps with items you own.");
+  }
+
+  if (String(receiverItem.owner) === String(req.user._id)) {
+    res.status(400);
+    throw new Error("You cannot swap with yourself.");
+  }
+
+  // Check for duplicate pending/counter swap
+  const existingSwap = await Swap.findOne({
+    proposer: req.user._id,
+    proposerItem: proposerItemId,
+    receiverItem: receiverItemId,
+    status: { $in: ["pending", "counter"] },
+  });
+
+  if (existingSwap) {
+    res.status(200).json({ swap: existingSwap });
+    return;
   }
 
   const swap = await Swap.create({

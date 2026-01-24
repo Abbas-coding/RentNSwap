@@ -1,5 +1,5 @@
+import "dotenv/config"; // Load env vars before anything else
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -14,7 +14,7 @@ import adminRoutes from "./routes/admin";
 import insightsRoutes from "./routes/insights";
 import conversationRoutes from "./routes/conversations";
 
-dotenv.config();
+// dotenv.config(); // Removed as we are using the side-effect import
 connectDB();
 
 const app = express();
@@ -47,10 +47,21 @@ app.use(notFound);
 app.use(errorHandler);
 
 const httpServer = createServer(app);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://rent-n-swap.vercel.app"
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 

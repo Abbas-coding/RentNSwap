@@ -58,7 +58,7 @@ export const createReview = asyncHandler(
     }
 
     const review = await Review.findOneAndUpdate(
-      { item: itemId, fromUser: req.user._id },
+      { booking: bookingId },
       {
         item: itemId,
         booking: bookingId,
@@ -69,6 +69,14 @@ export const createReview = asyncHandler(
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+
+    // Recalculate average rating
+    const allReviews = await Review.find({ item: itemId });
+    const avgRating =
+      allReviews.reduce((acc, r) => acc + r.rating, 0) / allReviews.length;
+
+    item.rating = avgRating;
+    await item.save();
 
     res.status(201).json({ review });
   }

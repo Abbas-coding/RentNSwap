@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightLeft, Coins } from "lucide-react";
-import { type Swap, API_BASE_URL } from "@/lib/api";
+import { type Swap} from "@/lib/api";
 
 interface SwapOfferCardProps {
   swap: Swap;
@@ -16,7 +16,7 @@ function SwapItem({ item }: { item: Swap["proposerItem"] }) {
   if (!item) return null;
   const imageUrl =
     item.images && item.images.length > 0
-      ? `${API_BASE_URL}/${item.images[0]}`
+      ? `${item.images[0]}`
       : "/placeholder.svg";
 
   return (

@@ -17,10 +17,14 @@ export default function ListItem() {
   const [availability, setAvailability] = useState<string[]>([]);
   const [images, setImages] = useState<FileList | null>(null);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (isSubmitting) return;
+    
     setStatus(null);
+    setIsSubmitting(true);
 
     const formData = new FormData();
     formData.append("title", form.title);
@@ -62,6 +66,8 @@ export default function ListItem() {
         message:
           error instanceof Error ? error.message : "Unable to save. Please check your inputs.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -230,9 +236,10 @@ export default function ListItem() {
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-[var(--rs-primary)] py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200/60"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-[var(--rs-primary)] py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-200/60 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save listing
+            {isSubmitting ? "Saving..." : "Save listing"}
           </button>
           {status && (
             <p
@@ -248,3 +255,4 @@ export default function ListItem() {
     </section>
   );
 }
+

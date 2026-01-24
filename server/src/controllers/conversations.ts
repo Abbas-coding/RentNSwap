@@ -108,10 +108,9 @@ export const createConversation = asyncHandler(async (req: AuthenticatedRequest,
     throw new Error("Cannot create a conversation with yourself.");
   }
 
-  // Check if a conversation with these participants and subject/context already exists
+  // Check if a conversation with these participants already exists (ignoring subject/context)
   let conversation = await Conversation.findOne({
     participants: { $all: [req.user._id, participantId] },
-    subject: subject, // For simplicity, matching by subject. Could be more complex with context.
   });
 
   if (conversation) {
@@ -123,6 +122,8 @@ export const createConversation = asyncHandler(async (req: AuthenticatedRequest,
       readBy: [req.user._id],
     };
     conversation.messages.push(message);
+    // Optionally update the subject to reflect the most recent topic, or keep the original.
+    // For now, we'll leave the subject as is to preserve the chat history context.
     await conversation.save();
     io.to(participantId).emit("new_message", { conversationId: conversation._id, message });
     res.status(200).json({ conversation });
