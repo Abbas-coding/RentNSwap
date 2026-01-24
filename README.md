@@ -1,55 +1,133 @@
-# Rent & Swap — Monorepo
+# RentNSwap
 
-This repo now contains both the React frontend (Vite + TypeScript) and a Node/Express API that persists users in MongoDB. The current backend slice focuses on authentication (signup/login) so the UI can demonstrate full-stack flows.
+RentNSwap is a comprehensive full-stack platform designed to facilitate the renting and swapping of items within a community. It enables users to list personal items, browse available listings, propose swaps, and book rentals, all while ensuring a secure and interactive user experience through real-time messaging and administrative oversight.
 
-## Requirements
-- Node 18+
-- npm 10+
-- Local MongoDB running on `mongodb://localhost:27017` (or update the env vars)
+## Key Features
 
-## Environment Variables
-Create the following files from the provided examples:
+- **User Authentication:** Secure Signup and Login functionality using JWT.
+- **Item Management:** Users can list items with images and descriptions, and browse a catalog of available items.
+- **Rentals & Bookings:** Complete flow for booking items for specific dates.
+- **Swap System:** Dedicated functionality for users to propose and negotiate item swaps.
+- **Real-Time Messaging:** Integrated inbox for instant communication between buyers, sellers, and swappers (powered by Socket.io).
+- **Admin Dashboard:** A robust backend interface for administrators to manage users, listings, bookings, and swaps.
+- **Dispute Resolution:** Built-in system for handling disputes between users.
+- **Reviews & Ratings:** Trust-building mechanism allowing users to review transactions and items.
+- **Community Insights:** Analytics and insights for platform usage.
 
-- Frontend: copy `.env.example` → `.env` and update `VITE_API_URL` if your API runs on a different host/port.
-- Backend: inside `server/`, copy `.env.example` → `.env` and set:
-  - `MONGO_URI` — connection string for MongoDB
-  - `JWT_SECRET` — long random string
-  - `CLIENT_ORIGIN` — normally `http://localhost:5173`
+## Tech Stack
 
-## Install
-From the repo root:
+### Frontend
+- **Framework:** [React](https://reactjs.org/) (via [Vite](https://vitejs.dev/))
+- **Language:** TypeScript
+- **Styling:** CSS / Tailwind (inferred) with custom UI components
+- **State Management:** React Context API (Auth, Socket)
+- **Routing:** React Router
+
+### Backend
+- **Runtime:** [Node.js](https://nodejs.org/)
+- **Framework:** [Express.js](https://expressjs.com/)
+- **Language:** TypeScript
+- **Database:** [MongoDB](https://www.mongodb.com/) (using [Mongoose](https://mongoosejs.com/))
+- **Real-Time Engine:** [Socket.io](https://socket.io/)
+- **File Uploads:** Multer
+
+## Prerequisites
+
+Before running the project, ensure you have the following installed:
+- **Node.js** (v18 or higher)
+- **npm** (v10 or higher)
+- **MongoDB** (Running locally on `mongodb://localhost:27017` or a cloud instance)
+
+## Getting Started
+
+### 1. Repository Setup
+
+Clone the repository and install dependencies for both the frontend and backend.
+
+**Root (Frontend):**
 ```bash
 npm install
-cd server && npm install
 ```
 
-## Development
-Frontend:
-```bash
-npm run dev
-```
-Backend (from `server/`):
-```bash
-npm run dev
-```
-The API listens on `http://localhost:4000` by default and exposes `POST /api/auth/signup` and `POST /api/auth/login`. The React app reads the API base from `VITE_API_URL`, so no proxy configuration is necessary.
-
-## Build & Production
-Frontend bundle:
-```bash
-npm run build && npm run preview
-```
-Backend:
+**Backend:**
 ```bash
 cd server
-npm run build
-npm start
+npm install
 ```
 
-## Testing the Auth Flow
-1. Start MongoDB locally.
-2. Run both servers as described above.
-3. Visit `http://localhost:5173/signup`, create an account (email or phone + password).
-4. After signup/login the UI stores the JWT in `localStorage` and redirects to the home page.
+### 2. Environment Configuration
 
-Future work (payments, listings, etc.) can build on this foundation by adding more API routes, Mongo models, and secured endpoints that verify the stored JWT.
+You need to set up environment variables for both the client and the server.
+
+**Frontend:**
+Copy the example file and update if necessary.
+```bash
+cp .env.example .env
+```
+*Variables:*
+- `VITE_API_URL`: The URL of the backend API (default: `http://localhost:4000`)
+
+**Backend:**
+Navigate to the `server/` directory and create your `.env` file.
+```bash
+cd server
+cp .env.example .env
+```
+*Required Variables:*
+- `MONGO_URI`: Connection string for MongoDB (e.g., `mongodb://localhost:27017/rentnswap`)
+- `JWT_SECRET`: A secure random string for signing tokens.
+- `CLIENT_ORIGIN`: The URL of the frontend (e.g., `http://localhost:5173`)
+
+### 3. Database Seeding (Optional)
+
+To populate the database with initial test data (users, items, etc.), you can run the seed script.
+
+```bash
+cd server
+npm run seed
+```
+
+### 4. Running the Application
+
+**Start the Backend:**
+From the `server/` directory:
+```bash
+npm run dev
+```
+The server will start on port `4000` (or as configured).
+
+**Start the Frontend:**
+From the root directory:
+```bash
+npm run dev
+```
+The application will be accessible at `http://localhost:5173`.
+
+## Project Structure
+
+```
+RentNSwap/
+├── src/                  # Frontend source code
+│   ├── components/       # Reusable UI components
+│   ├── contexts/         # React Context providers (Auth, Socket)
+│   ├── layouts/          # Page layouts (Root, Auth)
+│   ├── pages/            # Application views (Home, Dashboard, Inbox, etc.)
+│   └── lib/              # Utilities and API clients
+├── server/               # Backend source code
+│   ├── src/
+│   │   ├── config/       # Database configuration
+│   │   ├── controllers/  # Request handlers
+│   │   ├── middleware/   # Express middleware (Auth, Error handling)
+│   │   ├── models/       # Mongoose data models
+│   │   └── routes/       # API route definitions
+│   └── uploads/          # Directory for uploaded files
+└── public/               # Static assets
+```
+
+## Contributing
+
+1. Fork the repository.
+2. Create a new branch for your feature (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes.
+4. Push to the branch.
+5. Open a Pull Request.
